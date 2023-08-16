@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1077</width>
+    <height>631</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CFE Energy Model</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(206, 206, 206);</string>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="landing_page">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QFrame" name="lp_data_frame">
+          <property name="styleSheet">
+           <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(201, 234, 252);</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <spacer name="verticalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="frpp_label">
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The FY 2021 FRPP Public Dataset has already been loaded by default. If you wish to change to a different dataset you can download a new dataset from the GSA repository &lt;a href=&quot;https://catalog.data.gov/dataset/?tags=frpp&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;here&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="openExternalLinks">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="frpp_path">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(255, 255, 255);</string>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item alignment="Qt::AlignHCenter">
+              <widget class="QPushButton" name="frpp_SetNewPath_pushButton">
+               <property name="maximumSize">
+                <size>
+                 <width>400</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(191, 191, 191);</string>
+               </property>
+               <property name="text">
+                <string>Set New FRPP Dataset</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>60</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="agency_label">
+               <property name="text">
+                <string>Choose an Agency</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="agency_comboBox">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(255, 255, 255);</string>
+               </property>
+               <property name="currentText">
+                <string/>
+               </property>
+               <item>
+                <property name="text">
+                 <string/>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>AGRICULTURE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>COMMERCE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>CORPS OF ENGINEERS</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>DC COURT SERVICES &amp; OFFENDER SUPERVISION AGENCY</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>ENERGY</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>ENVIRONMENTAL PROTECTION AGENCY</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>EXECUTIVE OFFICE OF THE PRESIDENT</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>FEDERAL RETIREMENT THRIFT INVESTMENT BOARD</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>GENERAL SERVICES ADMINISTRATION</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>HEALTH AND HUMAN SERVICES</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>HOMELAND SECURITY</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>INDEPENDENT GOVERNMENT OFFICES</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>INTERIOR</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>JUSTICE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>LABOR</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>MERIT SYSTEMS PROTECTION BOARD</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>NATIONAL AERONAUTICS AND SPACE ADMINISTRATION</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>NATIONAL CREDIT UNION ADMINISTRATION</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>PRETRIAL SERVICES FOR DC</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>REGIONAL COMMISSIONS</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>SMITHSONIAN</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>STATE</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>STATE (USAID)</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>TENNESSEE VALLEY AUTHORITY</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>TRANSPORTATION</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>U.S. INTERNATIONAL DEVELOPMENT FINANCE CORPORATION</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>UNITED STATES HOLOCAUST MEMORIAL MUSEUM</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>US AGENCY FOR GLOBAL MEDIA</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>VETERANS AFFAIRS</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item alignment="Qt::AlignHCenter">
+              <widget class="QPushButton" name="load_frpp_pushButton">
+               <property name="minimumSize">
+                <size>
+                 <width>300</width>
+                 <height>75</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Segoe UI</family>
+                 <pointsize>16</pointsize>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(230, 230, 230);
+font: 16pt &quot;Segoe UI&quot;;</string>
+               </property>
+               <property name="text">
+                <string>Load and Process Data</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="lp_image_frame">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255);</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <widget class="QLabel" name="landing_image">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="cfe_res.qrc">:/images/id25117_BidenEnergy500.jpg</pixmap>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="cfe_input_page">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QFrame" name="cfe_inp_frame">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>425</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">font: 12pt &quot;Segoe UI&quot;;background-color: rgb(201, 234, 252);</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QGroupBox" name="ag_summ_groupBox">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: 14pt &quot;Segoe UI&quot;;
+</string>
+             </property>
+             <property name="title">
+              <string>Agency Summary</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <layout class="QFormLayout" name="formLayout">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="nAssets_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Number of Assets</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="nAssets_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="total_land_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Total Land (Acres)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="total_land_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="total_build_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Total Building Area (ft&lt;span style=&quot; vertical-align:super;&quot;&gt;2&lt;/span&gt;)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="total_build_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="RnD_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>R&amp;D Area (Acres)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="RnD_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="office_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Office Building Area (Acres)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="1">
+                 <widget class="QLineEdit" name="office_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="CFE_inp_groupBox">
+             <property name="styleSheet">
+              <string notr="true">font: 14pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="title">
+              <string>CFE Model Inputs</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_9">
+              <item>
+               <layout class="QFormLayout" name="formLayout_2">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="energy_proj_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Percent Energy Projection (%)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="energy_proj_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="text">
+                   <string>15</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="cur_cfe_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Current Percent CFE (%)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="cur_cfe_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="AEG_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Annual Energy Growth (%)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="AEG_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="CB_oper_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Carbon Based Operation (hrs/day)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="CB_oper_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="text">
+                   <string>12</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="ren_oper_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Renewable Based Operation (hrs/day)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="1">
+                 <widget class="QLineEdit" name="ren_oper_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="text">
+                   <string>12</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="0">
+                 <widget class="QLabel" name="oper_days_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Operational Days (days/year)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="1">
+                 <widget class="QLineEdit" name="oper_days_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                  </property>
+                  <property name="text">
+                   <string>260</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QPushButton" name="model_assumpt_pushButton">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 146, 124);
+</string>
+               </property>
+               <property name="text">
+                <string>View / Change 
+Model Assumptions</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="build_CFE_pushButton">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 146, 124);
+</string>
+               </property>
+               <property name="text">
+                <string>Build CFE Model</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QScrollArea" name="cfe_inp_table_scrollArea">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(255, 255, 255);</string>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>608</width>
+             <height>550</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <item>
+             <widget class="QLabel" name="agency_table_label">
+              <property name="styleSheet">
+               <string notr="true">font: 20pt &quot;Segoe UI&quot;;
+text-decoration: underline;</string>
+              </property>
+              <property name="text">
+               <string>Sample Title</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QTableWidget" name="agency_tableWidget"/>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1077</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources>
+  <include location="cfe_res.qrc"/>
+ </resources>
+ <connections/>
+</ui>

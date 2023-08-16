@@ -1,0 +1,2615 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CFE_Model_Assumptions_Dialog</class>
+ <widget class="QDialog" name="CFE_Model_Assumptions_Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1331</width>
+    <height>930</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item alignment="Qt::AlignHCenter">
+    <widget class="QLabel" name="title_label">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>60</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 24pt &quot;Segoe UI&quot;;
+text-decoration: underline;</string>
+     </property>
+     <property name="text">
+      <string>CFE Model Assumptions</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(217, 217, 217);</string>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>-508</x>
+        <y>0</y>
+        <width>2089</width>
+        <height>842</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_12">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QFrame" name="wind_frame">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(142, 213, 213);</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QGroupBox" name="wind_system_groupBox">
+              <property name="font">
+               <font>
+                <family>Segoe UI</family>
+                <pointsize>16</pointsize>
+                <italic>false</italic>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
+font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Wind: System</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout_4">
+               <item row="0" column="0">
+                <widget class="QLabel" name="wind_frac_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Fraction of Averate Wind Speed</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="wind_frac_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>1.2</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="wind_turb_diam_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Turbine Rotor Diameter (m)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="wind_turb_diam_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>100.0</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="wind_CapFac_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Capacity Factor (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="wind_CapFac_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>38</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="wind_tur_spacing_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Trubine Spacing (# / distance (m) )</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                 <item>
+                  <widget class="QLineEdit" name="wind_Nturb_lineEdit">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>1</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="wind_per_label">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>/</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="wind_spacing_lineEdit">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>200</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="wind_pow_coef_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Power Coefficient</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QLineEdit" name="wind_pow_coef_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.4</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="wind_eff_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Overall Electrical Efficiency (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QLineEdit" name="wind_eff_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>86</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="wind_econ_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Wind: Economic</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QGroupBox" name="wind_gov_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(198, 198, 198);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Government Owned</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_3">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="wg_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="wg_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="wg_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="wg_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-1</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="wg_ece_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_3">
+                    <item>
+                     <widget class="QLineEdit" name="wg_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="wg_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="wg_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="wg_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="wg_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="wg_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="wg_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="wind_thrd_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(233, 255, 237);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Third Party</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_2">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="wt_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="wt_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>5.64</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="wt_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="wt_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>2.5</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="wt_ece_label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_4">
+                    <item>
+                     <widget class="QLineEdit" name="wt_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="wt_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="wt_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="wt_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="wt_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>26</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="wt_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="wt_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="solar_frame">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(222, 222, 0);</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QGroupBox" name="solar_system_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
+font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Solar PV: System</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout_5">
+               <item row="0" column="0">
+                <widget class="QLabel" name="per_roof_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Percent of Roof-top Available (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="per_roof_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>25</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <layout class="QVBoxLayout" name="verticalLayout_13">
+                 <item>
+                  <widget class="QLabel" name="rad_2_elec_label">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>Percent of Solar Radiation Converted to Electricity (%)</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="1" column="1">
+                <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <item>
+                  <widget class="QLineEdit" name="rad_2_elec_lineEdit">
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>16</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="fract_avg_SolRad_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Fraction of Average Solar Radiation</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="fract_avg_SolRad_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="perc_land_used_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Percent Land Used (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QLineEdit" name="perc_land_used_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>50</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="sun_hours_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Average Hours of Sun per Day (hours)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QLineEdit" name="sun_hours_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="dc_ac_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>D.C. to A.C Ratio</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QLineEdit" name="dc_ac_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>1.2</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="cap_fac_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Capacity Factor (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QLineEdit" name="cap_fac_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>16</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="solar_econ_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Solar PV: Economic</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_7">
+               <item>
+                <widget class="QGroupBox" name="solar_gov_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(198, 198, 198);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Government Owned</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_6">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="sg_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="sg_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="sg_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="sg_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-1</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="sg_ece_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_6">
+                    <item>
+                     <widget class="QLineEdit" name="sg_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="sg_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="sg_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="sg_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="sg_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="sg_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="sg_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="solar_thrd_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(233, 255, 237);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Third Party</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_7">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="st_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="st_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>5.64</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="st_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="st_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>2.5</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="st_ece_label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_7">
+                    <item>
+                     <widget class="QLineEdit" name="st_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="st_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="st_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="st_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="st_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>26</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="st_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="st_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="conc_solar_frame">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(255, 158, 94);</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QGroupBox" name="consol_system_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
+font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Concentrating Solar: System</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout">
+               <item row="0" column="0">
+                <widget class="QLabel" name="opt_eff_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Optical Efficiency (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="opt_eff_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>59.8</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="elec_eff_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Electrical Efficiency (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="elec_eff_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>17</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="therm_stor_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Thermal Storage (hours)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="therm_stor_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>10</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="avg_sunhrs_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Average Hours of Sun per Day (hours)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QLineEdit" name="avg_sunhrs_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="avg_sol_rad_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Average Solar Radiation (kWh/ft2/d)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QLineEdit" name="avg_sol_rad_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="per_agency_land_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Percent Agency Land Used (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QLineEdit" name="per_agency_land_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>50</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="cs_cap_fac_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Capacity Factor (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QLineEdit" name="cs_cap_fac_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>36</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="consol_econ_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Concentrating Solar: Economic</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <widget class="QGroupBox" name="consol_gov_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(198, 198, 198);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Government Owned</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_9">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="csg_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="csg_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="csg_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="csg_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-1</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="csg_ece_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <item>
+                     <widget class="QLineEdit" name="csg_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="csg_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="csg_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="csg_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="csg_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="csg_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="csg_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="consol_thrd_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(233, 255, 237);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Third Party</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_8">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="cst_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="cst_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>5.64</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="cst_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="cst_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>2.5</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="cst_ece_label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <item>
+                     <widget class="QLineEdit" name="cst_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="cst_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="cst_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="cst_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="cst_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>26</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="cst_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="cst_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="hydrogen_frame">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(44, 125, 255);</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <widget class="QGroupBox" name="hydrogen_system_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
+font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Hydrogen Fuel Cells: System</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout_14">
+               <item row="0" column="0">
+                <widget class="QLabel" name="h_cap_fac_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Capacity Factor (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="h_cap_fac_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>60</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="hrs_oper_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Hours of Operation per Day (hours)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="hrs_oper_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>24</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="fuel_emp_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Fuel Employed</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QComboBox" name="fuel_emp_comboBox">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Hydrogen</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="cur_den_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Current Density (A/m2)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QLineEdit" name="cur_den_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>5000</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="cell_volt_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Cell Voltage (volts)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QLineEdit" name="cell_volt_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.7</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="cell_act_area_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Cell Active Area (m2)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QLineEdit" name="cell_act_area_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>1.66</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="Nstacks_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Number of Stacks</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QLineEdit" name="Nstacks_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>12</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
+                <widget class="QLabel" name="prot_exch_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Proton Exchange Membrane FC</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="1">
+                <widget class="QComboBox" name="prot_exch_comboBox">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Considered</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="heat_rec_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Heat Recovery </string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QComboBox" name="heat_rec_comboBox">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Not Considered</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="9" column="0">
+                <widget class="QLabel" name="heat_val_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Heating Value (kJ/mol)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="9" column="1">
+                <widget class="QLineEdit" name="heat_val_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>142000</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="0">
+                <widget class="QLabel" name="stack_replace_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Time to replace stack (years)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="10" column="1">
+                <widget class="QLineEdit" name="stack_replace_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="0">
+                <widget class="QLabel" name="annual_degrade_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Annual Degradation (%/year)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="11" column="1">
+                <widget class="QLineEdit" name="annual_degrade_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>10</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="hydrogen_econ_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Hydrogen Fuel Cells: Economic</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_10">
+               <item>
+                <widget class="QGroupBox" name="hydrogen_gov_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(198, 198, 198);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Government Owned</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_11">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="hg_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="hg_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="hg_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="hg_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-1</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="hg_ece_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_11">
+                    <item>
+                     <widget class="QLineEdit" name="hg_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="hg_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="hg_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="hg_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="hg_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="hg_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="hg_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="hydrogen_thrd_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(233, 255, 237);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Third Party</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_10">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="ht_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="ht_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>5.64</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="ht_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="ht_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>2.5</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="ht_ece_label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_10">
+                    <item>
+                     <widget class="QLineEdit" name="ht_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="ht_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="ht_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="ht_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="ht_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>26</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="ht_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="ht_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="geothermal_frame">
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(103, 158, 21);</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <widget class="QGroupBox" name="geo_system_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);
+font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Geothermal Power: System</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout_15">
+               <item row="0" column="0">
+                <widget class="QLabel" name="well_diam_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Well Diameter (m)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="well_diam_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>0.25</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="fluid_vel_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Fluid Velocity (m/s)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="fluid_vel_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>2</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="well_depth_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Well Depth (m)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="well_depth_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>3000.00</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="turb_outlet_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Turbine Outlet Temperature (deg C)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QLineEdit" name="turb_outlet_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>60</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="geo_cap_fac_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Capacity Factor (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QLineEdit" name="geo_cap_fac_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>90</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="fluid_den_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Fluid Density (kg/m3)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QLineEdit" name="fluid_den_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>1000</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLabel" name="pump_eff_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Overall Pumping Efficiency (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QLineEdit" name="pump_eff_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>70</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="geo_econ_groupBox">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);font: 700 16pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="title">
+               <string>Geothermal Power: Economic</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_11">
+               <item>
+                <widget class="QGroupBox" name="geo_gov_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(198, 198, 198);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Government Owned</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_13">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="gg_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="gg_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="gg_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="gg_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>-1</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="gg_ece_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_13">
+                    <item>
+                     <widget class="QLineEdit" name="gg_ece_LB_lineEdit">
+                      <property name="autoFillBackground">
+                       <bool>false</bool>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="gg_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="gg_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="gg_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="gg_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="gg_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="gg_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="geo_thrd_groupBox">
+                 <property name="styleSheet">
+                  <string notr="true">background-color: rgb(233, 255, 237);font: 700 14pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="title">
+                  <string>Third Party</string>
+                 </property>
+                 <layout class="QFormLayout" name="formLayout_12">
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="gt_disc_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Discounted Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="gt_disc_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>5.64</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="gt_infl_rate_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Inflation Rate (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QLineEdit" name="gt_infl_rate_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>2.5</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="gt_ece_label">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Electric Cost Escalation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_12">
+                    <item>
+                     <widget class="QLineEdit" name="gt_ece_LB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>0.9</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="gt_ece_dividing_label">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                      </property>
+                      <property name="text">
+                       <string>&lt;= ECE &lt;=</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="gt_ece_UB_lineEdit">
+                      <property name="styleSheet">
+                       <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                      </property>
+                      <property name="text">
+                       <string>1.745</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <widget class="QLabel" name="gt_tax_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Taxation (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="1">
+                   <widget class="QLineEdit" name="gt_tax_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>26</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="gt_proj_life_label">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                    </property>
+                    <property name="text">
+                     <string>Project Life (years)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="4" column="1">
+                   <widget class="QLineEdit" name="gt_proj_life_lineEdit">
+                    <property name="styleSheet">
+                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
+                    </property>
+                    <property name="text">
+                     <string>25</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item alignment="Qt::AlignRight">
+    <widget class="QCheckBox" name="overwrite_checkBox">
+     <property name="minimumSize">
+      <size>
+       <width>225</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked, change the values that load in when the program is started.&lt;/p&gt;&lt;p&gt;The new values entered here will be written as the new defaults.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+border-color: rgb(8, 127, 255);</string>
+     </property>
+     <property name="text">
+      <string>Overwrite Default Values</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>CFE_Model_Assumptions_Dialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>CFE_Model_Assumptions_Dialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
