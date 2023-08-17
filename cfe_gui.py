@@ -132,12 +132,53 @@ class MainWindow(QMainWindow):
             self.frpp_df = pd.read_excel(str(self.frpp_path.text()),usecols=column_names,
                                           dtype=column_dtype)
             
+        # Apply agreed filters 
+        # - only US and US Territories; No "Disposed" assets
+        # - all buildings
+        # - land: vacant, r&d, office building locations
+        # - structures: parking structures
         self.frpp_df = self.frpp_df.loc[(self.frpp_df['Reporting Agency'] == str(self.agency_comboBox.currentText()))
             & (self.frpp_df['US/Foreign'].isin(['UNITED STATES', 'US TERRITORIES']))
             & (~self.frpp_df['Asset Status'].isin(['Disposed']))
             & ((self.frpp_df['Real Property Type'] == 'Building')
             | ((self.frpp_df['Real Property Type'] == 'Land') & (self.frpp_df['Real Property Use'].isin(['Vacant', 'Office Building Locations', 'Research and Development'])))
             | ((self.frpp_df['Real Property Type'] == 'Structure') & (self.frpp_df['Real Property Use'] == 'Parking Structures')))]
+        
+        # Clean Data
+        self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: int(str(int(x))[0:5]) if len(str(int(x))) > 5 else int(x))
+
+        # Estimate Rooftop Area for Buildings
+        '''        
+        Adapted from PVWattsv8_Implementation notebook
+        This code estimates rooftop SIZE only, and does not apply any assumptions 
+        of how much of that rooftop area is available for solar.
+
+        Steps:
+        - Subset for BUILDINGS only
+        - Based on available data, creates two engineered features:
+            - est_num_stories
+            - est_rooftop_area_sqft
+        - Note: FRPP column "Square Feet Unit of Measure" distinguishes whether Sq Ft is reported in gross or rentable sq ft.
+        '''
+        height_to_stories = {'Height > 0 feet and <= 30 feet above ground level': 1,
+                             'Height > 30 feet and <= 100 feet above ground level': 6, 
+                             'Height > 100 feet and < 200 feet above ground level': 13, 
+                             'Height >= 200 feet above ground level': 22}
+        
+        self.frpp_df['est_num_stories'] = list(np.zeros((self.frpp_df.shape[0],1)))
+        self.frpp_df['est_rooftop_area_sqft'] = list(np.zeros((self.frpp_df.shape[0],1)))
+        for index, row in self.frpp_df.iterrows():
+            if row['Real Property Type'] == 'Building':
+                if not np.isnan(row['Asset Height']):
+                    self.frpp_df.at[index, 'est_num_stories'] = round(row['Asset Height']/12, 0)
+                elif isinstance(row['Asset Height Range'], str):
+                    self.frpp_df.at[index, 'est_num_stories'] = height_to_stories[row['Asset Height Range']]
+                else:
+                    self.frpp_df.at[index, 'est_num_stories'] = 2
+                self.frpp_df.at[index, 'est_rooftop_area_sqft'] = row['Square Feet (Buildings)'] / self.frpp_df.at[index, 'est_num_stories']
+            else:
+                self.frpp_df.at[index, 'est_num_stories'] = np.nan
+                self.frpp_df.at[index, 'est_rooftop_area_sqft'] = np.nan
         
         print("test")
 
