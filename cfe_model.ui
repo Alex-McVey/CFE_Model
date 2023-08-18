@@ -319,6 +319,28 @@ font: 16pt &quot;Segoe UI&quot;;</string>
                </property>
               </widget>
              </item>
+             <item alignment="Qt::AlignHCenter">
+              <widget class="QProgressBar" name="pg1_progressBar">
+               <property name="minimumSize">
+                <size>
+                 <width>400</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>400</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
           </layout>
@@ -461,7 +483,7 @@ background-color: rgb(255, 255, 255);</string>
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="0">
+                <item row="4" column="0">
                  <widget class="QLabel" name="RnD_label">
                   <property name="styleSheet">
                    <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
@@ -471,7 +493,7 @@ background-color: rgb(255, 255, 255);</string>
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="1">
+                <item row="4" column="1">
                  <widget class="QLineEdit" name="RnD_lineEdit">
                   <property name="styleSheet">
                    <string notr="true">font: 12pt &quot;Segoe UI&quot;;
@@ -482,7 +504,7 @@ background-color: rgb(255, 255, 255);</string>
                   </property>
                  </widget>
                 </item>
-                <item row="4" column="0">
+                <item row="5" column="0">
                  <widget class="QLabel" name="office_label">
                   <property name="styleSheet">
                    <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
@@ -492,7 +514,7 @@ background-color: rgb(255, 255, 255);</string>
                   </property>
                  </widget>
                 </item>
-                <item row="4" column="1">
+                <item row="5" column="1">
                  <widget class="QLineEdit" name="office_lineEdit">
                   <property name="styleSheet">
                    <string notr="true">font: 12pt &quot;Segoe UI&quot;;
@@ -500,6 +522,24 @@ background-color: rgb(255, 255, 255);</string>
                   </property>
                   <property name="readOnly">
                    <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="vacant_label">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+                  </property>
+                  <property name="text">
+                   <string>Vacant Land Area (Acres)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="vacant_lineEdit">
+                  <property name="styleSheet">
+                   <string notr="true">font: 12pt &quot;Segoe UI&quot;;
+background-color: rgb(255, 255, 255);</string>
                   </property>
                  </widget>
                 </item>
