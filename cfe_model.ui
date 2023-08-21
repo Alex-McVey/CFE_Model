@@ -21,7 +21,7 @@
        <string notr="true">background-color: rgb(206, 206, 206);</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="landing_page">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -367,7 +367,7 @@ font: 16pt &quot;Segoe UI&quot;;</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="cfe_res.qrc">:/images/id25117_BidenEnergy500.jpg</pixmap>
+              <pixmap>:/images/id25117_BidenEnergy500.jpg</pixmap>
              </property>
             </widget>
            </item>

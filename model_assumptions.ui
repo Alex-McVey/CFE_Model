@@ -48,7 +48,7 @@ text-decoration: underline;</string>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>-508</x>
+        <x>-667</x>
         <y>0</y>
         <width>2089</width>
         <height>842</height>
@@ -1715,6 +1715,9 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
                   <string>142000</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
