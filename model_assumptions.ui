@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1331</width>
-    <height>930</height>
+    <width>1441</width>
+    <height>1020</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,10 +48,10 @@ text-decoration: underline;</string>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>-667</x>
+        <x>0</x>
         <y>0</y>
         <width>2089</width>
-        <height>842</height>
+        <height>876</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -166,6 +166,9 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                    </property>
                    <property name="text">
                     <string>1</string>
+                   </property>
+                   <property name="readOnly">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>

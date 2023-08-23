@@ -55,6 +55,9 @@ class MainWindow(QMainWindow):
         self.assmpt_dlf_errors = []
         self.frpp_df = None
 
+        # Set defaults
+        self.stackedWidget.setCurrentIndex(0)
+
 
     def set_newFRPP_path(self):
         """
@@ -362,6 +365,75 @@ class MainWindow(QMainWindow):
 
 
     def build_cfe_model(self):
+        # Check to see if the agency is in the energy data csv
+
+        ''' Solar Power '''
+        # Calculate the A.C. Roof-top solar power  
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan      
+        filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
+        dmy[filter_] = self.model_assump['solar']['system']['dc_to_ac_ratio'] * \
+            (self.model_assump['solar']['system']['per_rad_to_elec']/100.) * (0.0929031299*self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day']) * \
+            self.frpp_df[filter_]['est_rooftop_area_sqft'] * (self.model_assump['solar']['system']['precent_roof_avail']/100.) / \
+            self.model_assump['solar']['system']['avg_sun_hours']
+            # 0.0929031299 is m2 to ft2
+        self.frpp_df['Rooftop Solar Power'] = dmy.tolist()            
+        # Calculate the A.C. Ground mounted Solar
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan  
+        filter_ = ~self.frpp_df['Acres'].isna()
+        dmy[filter_] = self.model_assump['solar']['system']['dc_to_ac_ratio'] * \
+            (self.model_assump['solar']['system']['per_rad_to_elec']/100.) * (self.model_assump['solar']['system']['perc_land_used']/100.) * \
+            (0.0929031299*self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day']) * self.frpp_df[filter_]['Acres'] * (43560.) / \
+            self.model_assump['solar']['system']['avg_sun_hours']
+        self.frpp_df['Ground Solar Power'] = dmy.tolist()
+        # Calculate annual energy rate for solar
+        self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = self.frpp_df['Rooftop Solar Power'] * 24 * 365 * (self.model_assump['solar']['system']['capacity_factor']/100.)
+        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = self.frpp_df['Ground Solar Power'] * 24 * 365 * (self.model_assump['solar']['system']['capacity_factor']/100.)
+
+        ''' Wind Power '''
+        # Number of turbines on land
+        #                           (*N Defined by user between 5 and 8ish)
+        # --->  Primary         X <----  N*Turb Diam -----> X
+        #                       -
+        # --->  Wind            |
+        #                      2*Turb Diam                 
+        # --->  Direction       |  
+        #                       -
+        # --->                  X                           X <- Turbine
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan         
+        filter_ = ~self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level'].isna()
+        dmy[filter_] = np.floor(self.frpp_df[filter_]['Acres'] / (2*self.model_assump['wind']['system']['turbine_diameter']*\
+                                                    self.model_assump['wind']['system']['turbine_spacing'] * 0.000247105)) # convert to acres
+        self.frpp_df['N Wind Turbines'] = dmy.tolist()
+        # Power (W) = (0.5 * Cp * rho * A * v^3) * N_Turbines
+        #   - Cp coefficient of performance
+        #   - rho density of the air in kg/m3
+        #   - A cross-sectional area of the wind in m2
+        #   - v velocity of the wind in m/s
+        wind_mod = self.model_assump['wind']['system']['fraction_of_average_wind_speed']
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan          
+        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level'].isna(), \
+                  np.logical_or(self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level']*wind_mod > 25 , \
+                                self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level']*wind_mod <= 3))  # Cut in/out speeds
+        dmy[filter_] = 0.0 
+        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level'].isna(), \
+                  np.logical_and(self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level']*wind_mod <= 25, \
+                                 self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level']*wind_mod > 12))  # Power output is constant between these values (ie it cant spin any faster)
+        dmy[filter_] = 0.5 * self.model_assump['wind']['system']['power_coefficient'] * \
+                                              1.293 * (np.pi * self.model_assump['wind']['system']['turbine_diameter']**2 / 4.) * \
+                                              12**3 * self.frpp_df[filter_]['N Wind Turbines'] * 0.001 
+        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level'].isna(), \
+                  np.logical_and(self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level']*wind_mod <= 12, \
+                                 self.frpp_df['Annual Average Wind Speed (m/s) at 100m above surface level']*wind_mod > 3)) # Between these speeds the turbine speed is proportional to wind speed
+        dmy[filter_] = 0.5 * self.model_assump['wind']['system']['power_coefficient'] * \
+                                              1.293 * (np.pi * self.model_assump['wind']['system']['turbine_diameter']**2 / 4.) * \
+                                              (self.frpp_df[filter_]['Annual Average Wind Speed (m/s) at 100m above surface level']*wind_mod)**3 *\
+                                              self.frpp_df[filter_]['N Wind Turbines'] * 0.001        
+        self.frpp_df['Wind Power'] = dmy.tolist()
+
         a = 1
 
     # Functions not tied to any button
