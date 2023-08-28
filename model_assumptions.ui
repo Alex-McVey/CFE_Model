@@ -1126,26 +1126,6 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                 </widget>
                </item>
                <item row="4" column="0">
-                <widget class="QLabel" name="avg_sol_rad_label">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>Average Solar Radiation (kWh/ft2/d)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="1">
-                <widget class="QLineEdit" name="avg_sol_rad_lineEdit">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="5" column="0">
                 <widget class="QLabel" name="per_agency_land_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -1155,7 +1135,7 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
+               <item row="4" column="1">
                 <widget class="QLineEdit" name="per_agency_land_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -1165,7 +1145,7 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="6" column="0">
+               <item row="5" column="0">
                 <widget class="QLabel" name="cs_cap_fac_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -1175,7 +1155,7 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="6" column="1">
+               <item row="5" column="1">
                 <widget class="QLineEdit" name="cs_cap_fac_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>

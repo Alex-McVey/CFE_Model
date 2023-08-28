@@ -60,7 +60,6 @@ class model_assump_dlg(QDialog):
         self.elec_eff_lineEdit.setText(str(assump_json['conc_solar']['system']['elec_eff'])) 
         self.therm_stor_lineEdit.setText(str(assump_json['conc_solar']['system']['thermal_storage']))
         self.avg_sunhrs_lineEdit.setText(str(assump_json['conc_solar']['system']['avg_sun_hours'])) 
-        self.avg_sol_rad_lineEdit.setText(str(assump_json['conc_solar']['system']['avg_solar_rad']))
         self.per_agency_land_lineEdit.setText(str(assump_json['conc_solar']['system']['perc_land_used'])) 		
         self.cs_cap_fac_lineEdit.setText(str(assump_json['conc_solar']['system']['capacity_factor'])) 
         self.csg_disc_rate_lineEdit.setText(str(assump_json['conc_solar']['gov_rates']['discount_rate'])) 
@@ -138,7 +137,7 @@ class model_assump_dlg(QDialog):
                            self.sg_ece_LB_lineEdit, self.sg_ece_UB_lineEdit, self.sg_tax_lineEdit, self.sg_proj_life_lineEdit, 
                            self.st_disc_rate_lineEdit, self.st_infl_rate_lineEdit, self.st_ece_LB_lineEdit, self.st_ece_UB_lineEdit, 
                            self.st_tax_lineEdit, self.st_proj_life_lineEdit, self.opt_eff_lineEdit, self.elec_eff_lineEdit, self.therm_stor_lineEdit, 
-                           self.avg_sunhrs_lineEdit, self.avg_sol_rad_lineEdit, self.per_agency_land_lineEdit, self.cs_cap_fac_lineEdit, 
+                           self.avg_sunhrs_lineEdit, self.per_agency_land_lineEdit, self.cs_cap_fac_lineEdit, 
                            self.csg_disc_rate_lineEdit, self.csg_infl_rate_lineEdit, self.csg_ece_LB_lineEdit, self.csg_ece_UB_lineEdit, 
                            self.csg_tax_lineEdit, self.csg_proj_life_lineEdit, self.cst_disc_rate_lineEdit, self.cst_infl_rate_lineEdit, 
                            self.cst_ece_LB_lineEdit, self.cst_ece_UB_lineEdit, self.cst_tax_lineEdit, self.cst_proj_life_lineEdit, self.h_cap_fac_lineEdit, 
@@ -471,23 +470,7 @@ class model_assump_dlg(QDialog):
             color_red.append(self.avg_sunhrs_lineEdit)
             valid = False
             errors.append(f"The average hours of sun per day for concentrating solar must be numeric")
-        
-        try:
-            val = float(self.avg_sol_rad_lineEdit.text()) 
-            self.assump_json['conc_solar']['system']['avg_solar_rad'] = val 
-            if val < 0.1:
-                color_red.append(self.avg_sol_rad_lineEdit)
-                valid = False
-                errors.append(f"The average solar radiation must be greater than or equal to 0.1")
-            elif val > 1.115:
-                color_red.append(self.avg_sol_rad_lineEdit)
-                valid = False
-                errors.append(f"The average solar radiation must be less than or equal to 1.115")   
-        except:
-            color_red.append(self.avg_sol_rad_lineEdit)
-            valid = False
-            errors.append(f"The average solar radiation must be numeric")
-        
+                        
         try:
             val = float(self.per_agency_land_lineEdit.text()) 
             self.assump_json['conc_solar']['system']['perc_land_used'] = val 

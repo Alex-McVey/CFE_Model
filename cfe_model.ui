@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1077</width>
-    <height>631</height>
+    <height>647</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <string notr="true">background-color: rgb(206, 206, 206);</string>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="landing_page">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -367,7 +367,7 @@ font: 16pt &quot;Segoe UI&quot;;</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap>:/images/id25117_BidenEnergy500.jpg</pixmap>
+              <pixmap resource="cfe_res.qrc">:/images/id25117_BidenEnergy500.jpg</pixmap>
              </property>
             </widget>
            </item>
@@ -761,7 +761,7 @@ background-color: rgb(255, 146, 124);
              <x>0</x>
              <y>0</y>
              <width>608</width>
-             <height>550</height>
+             <height>566</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -793,6 +793,92 @@ text-decoration: underline;</string>
              </spacer>
             </item>
            </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="cfe_output_page">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QTabWidget" name="tabWidget">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="cfe_output_tab">
+           <attribute name="title">
+            <string>CFE Model</string>
+           </attribute>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QFrame" name="cfe_summary_frame">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(255, 255, 255);</string>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_12">
+               <item>
+                <widget class="QLabel" name="cfe_output_agency_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 700 20pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Test</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QTableWidget" name="cfe_output_tableWidget">
+                 <property name="styleSheet">
+                  <string notr="true">font: 16pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="cfe_barchrt_frame">
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(201, 234, 252);</string>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_11">
+               <item>
+                <layout class="QVBoxLayout" name="cfe_barchrt_layout"/>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>1</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="econ_tab">
+           <attribute name="title">
+            <string>Economic Analysis</string>
+           </attribute>
           </widget>
          </widget>
         </item>
