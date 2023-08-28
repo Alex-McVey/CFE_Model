@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
+from PyQt6.QtCore import Qt
 from PyQt6.uic import loadUi
 
 import sys
@@ -26,6 +27,15 @@ ASSUMP_DLG = PROJECT_PATH / "model_assumptions.ui"
 DEFAULT_WHITE = u"background-color: rgb(255, 255, 255);"
 DEFAULT_ERROR = u"background-color: rgb(255, 103, 103);"
 
+
+class MplCanvas(FigureCanvasQTAgg):
+
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+        super(MplCanvas, self).__init__(fig)
+
+
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super(MainWindow, self).__init__()
@@ -46,6 +56,12 @@ class MainWindow(QMainWindow):
         # Load default FRPP Dataset
         self.frpp_path.setText(str(os.path.join(DATA_PATH, 'frpp_public_dataset_fy21_final_02242023.csv')))
 
+        # Add matplot objects to layouts
+        self.cfe_bar_canvas = MplCanvas(self, width=5, height=4, dpi=100)
+        self.toolbar_pg3 = NavigationToolbar(self.cfe_bar_canvas, self)
+        self.cfe_barchrt_layout.addWidget(self.toolbar_pg3)
+        self.cfe_barchrt_layout.addWidget(self.cfe_bar_canvas)
+        
         # Establish function connections
         ''' Landing Page '''
         self.frpp_SetNewPath_pushButton.pressed.connect(self.set_newFRPP_path)
@@ -613,7 +629,55 @@ class MainWindow(QMainWindow):
         self.cfe_use_df['Projected Total Energy in year N (MWh)'] = dmy
 
         ''' Populate the next Page '''
-        
+        self.cfe_output_agency_label.setText(f"CFE Potential for {str(self.agency_comboBox.currentText())}")
+        self.cfe_output_tableWidget.setRowCount(6)
+        self.cfe_output_tableWidget.setColumnCount(4)
+        self.cfe_output_tableWidget.setHorizontalHeaderLabels(['CFE Technology', 'Total Potential\nCapacity (MW)', 'Total Annual Generation\nPotential (MWh)', 'Percent of Total\nAgency Demand'])
+        for qq, name in enumerate(['Rooftop Solar','Ground-Mounted Solar',
+                          'Wind','Fuel Cell','Geothermal Power',
+                          'Concentrating Solar']):
+            self.cfe_output_tableWidget.setItem(qq,0, QTableWidgetItem(name))
+        for qq, key in enumerate(['Rooftop Solar Power','Ground Solar Power',
+                          'Wind Power (kW)','Fuel Cell (kW)','Geothermal Power (kW)',
+                          'Concentrating Solar Power (kW)']):
+            item = QTableWidgetItem(f"{self.frpp_df[key].sum()*0.001:.4e}")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter) 
+            self.cfe_output_tableWidget.setItem(qq,1, item)  
+        for qq, key in enumerate(['Annual Rooftop Solar Power (kWh/yr)','Annual Ground Solar Power (kWh/yr)',
+                        'Annual Wind Power (kWh/yr)','Annual Fuel Cell (kW/yr)',
+                        'Annual Geothermal Power (kWh/yr)','Annual Concentrating Solar Power (kWh)']):
+            item = QTableWidgetItem(f"{self.frpp_df[key].sum():.4e}")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.cfe_output_tableWidget.setItem(qq,2, item)
+            item = QTableWidgetItem(f"{(self.frpp_df[key].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:.1f} %")
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.cfe_output_tableWidget.setItem(qq,3, item) 
+            
+        header = self.cfe_output_tableWidget.horizontalHeader()       
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+
+        bar_data = {"Carbon-Based Energy": self.cfe_use_df['Carbon-Based Energy in year N (kWh)'].values,
+                    "Renewable Energy": self.cfe_use_df['Renewable Energy in year N (kWh)'].values}
+        x = np.arange(len(year_ind))  # the label locations
+        width = 0.25  # the width of the bars
+        multiplier = 0
+
+        for attribute, measurement in bar_data.items():
+            offset = width * multiplier
+            rects = self.cfe_bar_canvas.axes.bar(x + offset, measurement, width, label=attribute)
+            multiplier += 1
+
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        self.cfe_bar_canvas.axes.set_ylabel('Energy (MWh)')
+        self.cfe_bar_canvas.axes.set_title('Energy Source by Fiscal Year')
+        self.cfe_bar_canvas.axes.set_xticks(x + width, year_ind)
+        self.cfe_bar_canvas.axes.legend(loc='upper right', ncols=2)
+
+        self.stackedWidget.setCurrentIndex(2)
+
 
     # Functions not tied to any button
     def validate_page1(self)->bool | list:

@@ -844,6 +844,12 @@ text-decoration: underline;</string>
             </item>
             <item>
              <widget class="QFrame" name="cfe_barchrt_frame">
+              <property name="minimumSize">
+               <size>
+                <width>500</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="styleSheet">
                <string notr="true">background-color: rgb(201, 234, 252);</string>
               </property>
