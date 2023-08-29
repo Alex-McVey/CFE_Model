@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QCoreApplication
 from PyQt6.uic import loadUi
 
 import sys
@@ -407,12 +407,21 @@ class MainWindow(QMainWindow):
             else:
                 agency_energy_data = agency_energy_data.loc[(agency_energy_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
+        # These variables are just for the report at the end
+        n_solar_roof, n_solar_roof_built = 0, 0
+        n_solar_grnd, n_solar_grnd_built = 0, 0
+        n_wind, n_wind_built = 0, 0
+        n_geot, n_geot_built = 0, 0
+        n_fuelcell, n_fuelcell_built = 0, 0
+        n_conc_sol, n_conc_sol_built = 0, 0
+
         ''' Solar Power '''
         cur_dict = self.model_assump['solar']['system']
         # Calculate the A.C. Roof-top solar power  
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan      
         filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
+        n_solar_roof = filter_.sum()
         dmy[filter_] = cur_dict['dc_to_ac_ratio'] *(cur_dict['per_rad_to_elec']/100.) * \
             (0.0929031299*self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day']) * \
             self.frpp_df[filter_]['est_rooftop_area_sqft'] * (cur_dict['precent_roof_avail']/100.) / \
@@ -423,6 +432,7 @@ class MainWindow(QMainWindow):
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan  
         filter_ = ~self.frpp_df['Acres'].isna()
+        n_solar_grnd = filter_.sum()
         dmy[filter_] = cur_dict['dc_to_ac_ratio'] * (cur_dict['per_rad_to_elec']/100.) * (cur_dict['perc_land_used']/100.) * \
             (0.0929031299*self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day']) * self.frpp_df[filter_]['Acres'] * (43560.) / \
             cur_dict['avg_sun_hours']
@@ -466,12 +476,14 @@ class MainWindow(QMainWindow):
                                  self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 12))  # Power output is constant between these values (ie it cant spin any faster)
         dmy[filter_] = 0.5 * cur_dict['power_coefficient'] * 1.293 * (np.pi * cur_dict['turbine_diameter']**2 / 4.) * \
                                               12**3 * self.frpp_df[filter_]['N Wind Turbines'] * 0.001 
+        n_wind = filter_.sum()
         filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s)'].isna(), \
                   np.logical_and(self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod <= 12, \
                                  self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 3)) # Between these speeds the turbine speed is proportional to wind speed
         dmy[filter_] = 0.5 * cur_dict['power_coefficient'] * 1.293 * (np.pi * cur_dict['turbine_diameter']**2 / 4.) * \
                        (self.frpp_df[filter_]['Annual Average Wind Speed (m/s)']*wind_mod)**3 *\
-                       self.frpp_df[filter_]['N Wind Turbines'] * 0.001        
+                       self.frpp_df[filter_]['N Wind Turbines'] * 0.001  
+        n_wind += filter_.sum()      
         self.frpp_df['Wind Power (kW)'] = dmy.tolist()
         self.frpp_df['Annual Wind Power (kWh/yr)'] = self.frpp_df['Wind Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
         
@@ -480,6 +492,8 @@ class MainWindow(QMainWindow):
         # Explain
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan 
+        filter_ = np.logical_and(self.frpp_df['Real Property Type'] == 'Land', self.frpp_df['Real Property Use'] == 'Vacant')
+        n_conc_sol = filter_.sum()
         # calculate
         self.frpp_df['Concentrating Solar Power (kW)'] = dmy.tolist()
         self.frpp_df['Annual Concentrating Solar Power (kWh)'] = self.frpp_df['Concentrating Solar Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
@@ -489,6 +503,7 @@ class MainWindow(QMainWindow):
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan  
         filter_ = np.logical_and(~self.frpp_df['Geothermal_CLASS'].isna(), self.frpp_df['Geothermal_CLASS'] <=3)
+        n_geot = filter_.sum()
         enthalpy_diff, inlet_temp, outlet_temp = self.geothermal_enthalpy(self.frpp_df[filter_]['Geothermal_CLASS']) 
         dmy[filter_] = (((np.pi*cur_dict['well_diameter']**2/4)*cur_dict['fluid_velocity']*cur_dict['fluid_density'])*\
                          enthalpy_diff* (1-(outlet_temp+273)/(inlet_temp+273))) - \
@@ -503,6 +518,7 @@ class MainWindow(QMainWindow):
                                           cur_dict['cell_voltage']) * cur_dict['N_stacks'] * 0.001
         self.frpp_df['Annual Fuel Cell (kW/yr)'] =  self.frpp_df['Fuel Cell (kW)'] * cur_dict['daily_operation'] * \
             365. * (cur_dict['capacity_factor']/100.)
+        n_fuelcell = self.frpp_df.shape[0]
 
         ''' Finally Sum the various renewables to find the total power per site '''
         # The following stipulations are used when calculating renewable potential (property use listed)
@@ -575,6 +591,16 @@ class MainWindow(QMainWindow):
         self.frpp_df['Annual Concentrating Solar Power (kWh)'] = energy[1,:]
         self.frpp_df['Annual Wind Power (kWh/yr)'] = energy[2,:]
         self.frpp_df['Annual Geothermal Power (kWh/yr)'] = energy[3,:]
+        n_solar_roof_built = np.sum(~self.frpp_df['Rooftop Solar Power'].isna().values)
+        n_solar_grnd_built = np.sum(np.logical_and(~self.frpp_df['Ground Solar Power'].isna().values,
+                                                   self.frpp_df['Ground Solar Power'] != 0))
+        n_wind_built = np.sum(np.logical_and(~self.frpp_df['Wind Power (kW)'].isna().values,
+                                             self.frpp_df['Wind Power (kW)'] != 0))
+        n_geot_built = np.sum(np.logical_and(~self.frpp_df['Geothermal Power (kW)'].isna().values,
+                                             self.frpp_df['Geothermal Power (kW)'] != 0))
+        n_fuelcell_built = np.sum(~self.frpp_df['Fuel Cell (kW)'].isna().values)
+        n_conc_sol_built = np.sum(np.logical_and(~self.frpp_df['Concentrating Solar Power (kW)'].isna().values,
+                                                 self.frpp_df['Concentrating Solar Power (kW)'] != 0))
 
         # Finalize
         self.frpp_df['Total Power (kW)'] = self.frpp_df[['Rooftop Solar Power','Ground Solar Power',
@@ -628,37 +654,75 @@ class MainWindow(QMainWindow):
                 (1 + float(self.AEG_lineEdit.text())/100.)**(year-2023))
         self.cfe_use_df['Projected Total Energy in year N (MWh)'] = dmy
 
-        ''' Populate the next Page '''
-        self.cfe_output_agency_label.setText(f"CFE Potential for {str(self.agency_comboBox.currentText())}")
-        self.cfe_output_tableWidget.setRowCount(6)
-        self.cfe_output_tableWidget.setColumnCount(4)
-        self.cfe_output_tableWidget.setHorizontalHeaderLabels(['CFE Technology', 'Total Potential\nCapacity (MW)', 'Total Annual Generation\nPotential (MWh)', 'Percent of Total\nAgency Demand'])
-        for qq, name in enumerate(['Rooftop Solar','Ground-Mounted Solar',
-                          'Wind','Fuel Cell','Geothermal Power',
-                          'Concentrating Solar']):
-            self.cfe_output_tableWidget.setItem(qq,0, QTableWidgetItem(name))
-        for qq, key in enumerate(['Rooftop Solar Power','Ground Solar Power',
-                          'Wind Power (kW)','Fuel Cell (kW)','Geothermal Power (kW)',
-                          'Concentrating Solar Power (kW)']):
-            item = QTableWidgetItem(f"{self.frpp_df[key].sum()*0.001:.4e}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter) 
-            self.cfe_output_tableWidget.setItem(qq,1, item)  
-        for qq, key in enumerate(['Annual Rooftop Solar Power (kWh/yr)','Annual Ground Solar Power (kWh/yr)',
-                        'Annual Wind Power (kWh/yr)','Annual Fuel Cell (kW/yr)',
-                        'Annual Geothermal Power (kWh/yr)','Annual Concentrating Solar Power (kWh)']):
-            item = QTableWidgetItem(f"{self.frpp_df[key].sum():.4e}")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.cfe_output_tableWidget.setItem(qq,2, item)
-            item = QTableWidgetItem(f"{(self.frpp_df[key].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:.1f} %")
-            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.cfe_output_tableWidget.setItem(qq,3, item) 
-            
-        header = self.cfe_output_tableWidget.horizontalHeader()       
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-
+        ''' Populate the next Page '''        
+        self.cfe_summary_textEdit.setHtml(QCoreApplication.translate("MainWindow", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+            "<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
+            "p, li { white-space: pre-wrap; }\n"
+            "hr { height: 1px; border-width: 0; }\n"
+            "li.unchecked::marker { content: \"\\2610\"; }\n"
+            "li.checked::marker { content: \"\\2612\"; }\n"
+            "</style></head><body style=\" font-family:'Curier'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:24pt; font-weight:700; text-decoration: underline; color:#000086;\">CFE Potential for {str(self.agency_comboBox.currentText())}</span></p>\n"
+            "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:12pt; color:#000086;\"><br /></p>\n"
+            "<p style=\"  -qt-block-indent"
+                                    f":0; text-indent:0px;\"><span style=\" font-size:14pt;\">Total Energy Required: 		{agency_energy_data['Electricity (MWh)'].values[0]:,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt;\">Total Estimated Production Capacity:	{self.frpp_df['Total Energy (kWh)'].sum()*0.001:,.0f} MWh</span></p>\n"
+            "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Wind</span></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
+            "<p style=\"  -qt-block-i"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_wind:>12}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_wind_built:>22}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Wind Power (kW)'].sum()*0.001:>33,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Wind Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Wind Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>10.1f}%</span></p>\n"
+            "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px;  font-size:14pt;\"><br /></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Rooftop Solar PV</span></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
+            "<p style=\"  -qt-block-i"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_solar_roof:>15}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_solar_roof_built:>26}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Rooftop Solar Power'].sum()*0.001:>37,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n"
+            "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Ground Mounted Solar PV</span></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
+            "<p style=\"  -qt-block-i"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_solar_grnd:>16}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built{n_solar_grnd_built:>27}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Ground Solar Power'].sum()*0.001:>36,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n" 
+            "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Hydrogen Fuel Cell</span></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
+            "<p style=\"  -qt-block-i"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_fuelcell:>17}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_fuelcell_built:>27}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Fuel Cell (kW)'].sum()*0.001:>38,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n"
+            "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Geothermal Power</span></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
+            "<p style=\"  -qt-block-i"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_geot:>14}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_geot_built:>24}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Geothermal Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Geothermal Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Geothermal Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>13.1f}%</span></p>\n"
+            "<p style=\"-qt-paragraph-type:em"
+                                    "pty;  -qt-block-indent:0; text-indent:0px; font-size:14pt; color:#000000;\"><br /></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Concentrating Solar</span></p>\n"
+            "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_conc_sol:>14}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_conc_sol_built:>25}</span></p>\n"
+            "<p "
+                                    f"style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Concentrating Solar Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Concentrating Solar Power (kWh)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Concentrating Solar Power (kWh)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>13.1f}%</span></p></body></html>", None))
+        
         bar_data = {"Carbon-Based Energy": self.cfe_use_df['Carbon-Based Energy in year N (kWh)'].values,
                     "Renewable Energy": self.cfe_use_df['Renewable Energy in year N (kWh)'].values}
         x = np.arange(len(year_ind))  # the label locations
