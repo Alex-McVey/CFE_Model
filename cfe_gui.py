@@ -69,6 +69,42 @@ class MainWindow(QMainWindow):
         ''' Build CFE Model Page '''
         self.model_assumpt_pushButton.pressed.connect(self.launch_model_assump_dlg)
         self.build_CFE_pushButton.pressed.connect(self.build_cfe_model)
+        ''' Econ Tab '''
+        self.econ_cfe_comboBox.currentIndexChanged.connect(self.econ_val_changed)
+        self.gov_radioButton
+        self.third_party_radioButton
+        self.econ_energy_storage_lineEdit
+        self.econ_bat_rep_lineEdit
+        self.econ_agency_cons_lineEdit
+        self.econ_agency_elec_cost_lineEdit
+        self.econ_interest_rate_lineEdit
+        self.econ_proj_life_lineEdit
+        self.econ_marcs_comboBox
+        self.econ_ann_deg_lineEdit
+        self.econ_fixed_finance_lineEdit
+        self.econ_cont_per_lineEdit
+        self.econ_tax_rate_lineEdit
+        self.econ_insur_rate_lineEdit
+        self.econ_inflat_rate_lineEdit
+        self.econ_fed_tax_cred_lineEdit
+        self.econ_tax_cred_per_lineEdit
+        self.econ_price_esc_lineEdit
+        self.econ_fixed_finance_Slider
+        self.econ_cont_per_Slider
+        self.econ_tax_rate_Slider
+        self.econ_insur_rate_Slider
+        self.econ_inflat_rate_Slider
+        self.econ_fed_tax_cred_Slider
+        self.econ_tax_cred_per_Slider
+        self.econ_price_esc_Slider
+        self.econ_fixed_finance_Slider
+        self.econ_cont_per_Slider
+        self.econ_tax_rate_Slider
+        self.econ_insur_rate_Slider
+        self.econ_inflat_rate_Slider
+        self.econ_fed_tax_cred_Slider
+        self.econ_tax_cred_per_Slider
+        self.econ_price_esc_Slider        
 
         # Establish class variables
         self.assmpt_dlf_errors = []
@@ -382,7 +418,6 @@ class MainWindow(QMainWindow):
                 msg.setStandardButtons(QMessageBox.StandardButton.Ok)
                 msg.exec()
                 self.launch_model_assump_dlg()
-
 
     def build_cfe_model(self):
         # Check to see if the agency is in the energy data csv
@@ -742,6 +777,35 @@ class MainWindow(QMainWindow):
 
         self.stackedWidget.setCurrentIndex(2)
 
+    def owner_switch(self):
+        print()
+
+    def econ_val_changed(self):
+        print()
+
+    def fix_capital_slider(self):
+        print()
+
+    def contract_period_slider(self):
+        print()
+
+    def tax_rate_slider(self):
+        print()
+
+    def insurance_rate_slider(self):
+        print()
+
+    def inflation_rate_slider(self):
+        print()
+
+    def fed_tax_credit_slider(self):
+        print()
+
+    def tax_cred_period_slider(self):
+        print()
+
+    def price_escalat_slider(self):
+        print() 
 
     # Functions not tied to any button
     def validate_page1(self)->bool | list:
