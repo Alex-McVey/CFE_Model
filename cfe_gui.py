@@ -71,48 +71,51 @@ class MainWindow(QMainWindow):
         self.build_CFE_pushButton.pressed.connect(self.build_cfe_model)
         ''' Econ Tab '''
         self.econ_cfe_comboBox.currentIndexChanged.connect(self.econ_val_changed)
-        self.gov_radioButton
-        self.third_party_radioButton
-        self.econ_energy_storage_lineEdit
-        self.econ_bat_rep_lineEdit
-        self.econ_agency_cons_lineEdit
-        self.econ_agency_elec_cost_lineEdit
-        self.econ_interest_rate_lineEdit
-        self.econ_proj_life_lineEdit
-        self.econ_marcs_comboBox
-        self.econ_ann_deg_lineEdit
-        self.econ_fixed_finance_lineEdit
-        self.econ_cont_per_lineEdit
-        self.econ_tax_rate_lineEdit
-        self.econ_insur_rate_lineEdit
-        self.econ_inflat_rate_lineEdit
-        self.econ_fed_tax_cred_lineEdit
-        self.econ_tax_cred_per_lineEdit
-        self.econ_price_esc_lineEdit
-        self.econ_fixed_finance_Slider
-        self.econ_cont_per_Slider
-        self.econ_tax_rate_Slider
-        self.econ_insur_rate_Slider
-        self.econ_inflat_rate_Slider
-        self.econ_fed_tax_cred_Slider
-        self.econ_tax_cred_per_Slider
-        self.econ_price_esc_Slider
-        self.econ_fixed_finance_Slider
-        self.econ_cont_per_Slider
-        self.econ_tax_rate_Slider
-        self.econ_insur_rate_Slider
-        self.econ_inflat_rate_Slider
-        self.econ_fed_tax_cred_Slider
-        self.econ_tax_cred_per_Slider
-        self.econ_price_esc_Slider        
+        self.gov_radioButton.pressed.connect(self.owner_switch)
+        self.third_party_radioButton.pressed.connect(self.owner_switch)
+        self.econ_energy_storage_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_bat_rep_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_agency_cons_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_agency_elec_cost_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_interest_rate_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_proj_life_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_marcs_comboBox.currentIndexChanged.connect(self.econ_val_changed)
+        self.econ_ann_deg_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_rec_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_fixed_finance_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_cont_per_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_tax_rate_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_insur_rate_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_inflat_rate_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_fed_tax_cred_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_tax_cred_per_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_price_esc_lineEdit.editingFinished.connect(self.econ_val_changed)
+        self.econ_fixed_finance_Slider.valueChanged.connect(self.fix_capital_slider)
+        self.econ_cont_per_Slider.valueChanged.connect(self.contract_period_slider)
+        self.econ_tax_rate_Slider.valueChanged.connect(self.tax_rate_slider)
+        self.econ_insur_rate_Slider.valueChanged.connect(self.insurance_rate_slider)
+        self.econ_inflat_rate_Slider.valueChanged.connect(self.inflation_rate_slider)
+        self.econ_fed_tax_cred_Slider.valueChanged.connect(self.fed_tax_credit_slider)
+        self.econ_tax_cred_per_Slider.valueChanged.connect(self.tax_cred_period_slider)
+        self.econ_price_esc_Slider.valueChanged.connect(self.price_escalat_slider)
+        self.econ_fixed_finance_Slider.sliderReleased.connect(self.econ_val_changed)
+        self.econ_cont_per_Slider.sliderReleased.connect(self.econ_val_changed)
+        self.econ_tax_rate_Slider.sliderReleased.connect(self.econ_val_changed)
+        self.econ_insur_rate_Slider.sliderReleased.connect(self.econ_val_changed)
+        self.econ_inflat_rate_Slider.sliderReleased.connect(self.econ_val_changed)
+        self.econ_fed_tax_cred_Slider.sliderReleased.connect(self.econ_val_changed)
+        self.econ_tax_cred_per_Slider.sliderReleased.connect(self.econ_val_changed)
+        self.econ_price_esc_Slider.sliderReleased.connect(self.econ_val_changed)        
 
         # Establish class variables
         self.assmpt_dlf_errors = []
         self.frpp_df = None
+        self.econ_df = pd.DataFrame()
         self.cfe_use_df = pd.DataFrame()
 
         # Set defaults
         self.stackedWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(0)
 
 
     def set_newFRPP_path(self):
@@ -420,7 +423,7 @@ class MainWindow(QMainWindow):
                 self.launch_model_assump_dlg()
 
     def build_cfe_model(self):
-        # Check to see if the agency is in the energy data csv
+        # Check to see if the agency is in the energy data csv and energy cost data csv
         if not os.path.exists(os.path.join(DATA_PATH, "Agency_Energy_Data.csv")):
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Warning)
@@ -441,6 +444,27 @@ class MainWindow(QMainWindow):
                 return
             else:
                 agency_energy_data = agency_energy_data.loc[(agency_energy_data['Agency'] == str(self.agency_comboBox.currentText()))]
+
+        if not os.path.exists(os.path.join(DATA_PATH, "Agency_Energy_Price_Data.csv")):
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText(f"The agency energy price data csv is missing {os.path.join(DATA_PATH, 'Agency_Energy_Price_Data.csv')}\nThis data is needed to continue")
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+            return
+        else:
+            agency_price_data = pd.read_csv(os.path.join(DATA_PATH, "Agency_Energy_Price_Data.csv"), header=0)
+            if str(self.agency_comboBox.currentText()) not in agency_energy_data['Agency'].values:
+                msg = QMessageBox(self)
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setText(f"The data for the requested agency: {str(self.agency_comboBox.currentText())}\nIs not present in the price data set\n\nThe calculation can't continue")
+                msg.setWindowTitle("Warning")
+                msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+                msg.exec()
+                return
+            else:
+                agency_price_data = agency_price_data.loc[(agency_price_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
         # These variables are just for the report at the end
         n_solar_roof, n_solar_roof_built = 0, 0
@@ -618,33 +642,33 @@ class MainWindow(QMainWindow):
 
         power = power.transpose()
         energy = energy.transpose()
-        self.frpp_df['Ground Solar Power'] = power[0,:]
-        self.frpp_df['Concentrating Solar Power (kW)'] = power[1,:]
-        self.frpp_df['Wind Power (kW)'] = power[2,:]
-        self.frpp_df['Geothermal Power (kW)'] = power[3,:]
-        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = energy[0,:]
-        self.frpp_df['Annual Concentrating Solar Power (kWh)'] = energy[1,:]
-        self.frpp_df['Annual Wind Power (kWh/yr)'] = energy[2,:]
-        self.frpp_df['Annual Geothermal Power (kWh/yr)'] = energy[3,:]
+        self.frpp_df['Ground Solar Power Built'] = power[0,:]
+        self.frpp_df['Concentrating Solar Power Built(kW)'] = power[1,:]
+        self.frpp_df['Wind Power Built (kW)'] = power[2,:]
+        self.frpp_df['Geothermal Power Built (kW)'] = power[3,:]
+        self.frpp_df['Ground Solar Energy Built (kWh/yr)'] = energy[0,:]
+        self.frpp_df['Concentrating Solar Energy Built (kWh)'] = energy[1,:]
+        self.frpp_df['Wind Energy Built (kWh/yr)'] = energy[2,:]
+        self.frpp_df['Geothermal Energy Built (kWh/yr)'] = energy[3,:]
         n_solar_roof_built = np.sum(~self.frpp_df['Rooftop Solar Power'].isna().values)
-        n_solar_grnd_built = np.sum(np.logical_and(~self.frpp_df['Ground Solar Power'].isna().values,
-                                                   self.frpp_df['Ground Solar Power'] != 0))
-        n_wind_built = np.sum(np.logical_and(~self.frpp_df['Wind Power (kW)'].isna().values,
-                                             self.frpp_df['Wind Power (kW)'] != 0))
-        n_geot_built = np.sum(np.logical_and(~self.frpp_df['Geothermal Power (kW)'].isna().values,
-                                             self.frpp_df['Geothermal Power (kW)'] != 0))
+        n_solar_grnd_built = np.sum(np.logical_and(~self.frpp_df['Ground Solar Power Built'].isna().values,
+                                                   self.frpp_df['Ground Solar Power Built'] != 0))
+        n_wind_built = np.sum(np.logical_and(~self.frpp_df['Wind Power Built (kW)'].isna().values,
+                                             self.frpp_df['Wind Power Built (kW)'] != 0))
+        n_geot_built = np.sum(np.logical_and(~self.frpp_df['Geothermal Power Built (kW)'].isna().values,
+                                             self.frpp_df['Geothermal Power Built (kW)'] != 0))
         n_fuelcell_built = np.sum(~self.frpp_df['Fuel Cell (kW)'].isna().values)
-        n_conc_sol_built = np.sum(np.logical_and(~self.frpp_df['Concentrating Solar Power (kW)'].isna().values,
-                                                 self.frpp_df['Concentrating Solar Power (kW)'] != 0))
+        n_conc_sol_built = np.sum(np.logical_and(~self.frpp_df['Concentrating Solar Power Built(kW)'].isna().values,
+                                                 self.frpp_df['Concentrating Solar Power Built(kW)'] != 0))
 
         # Finalize
-        self.frpp_df['Total Power (kW)'] = self.frpp_df[['Rooftop Solar Power','Ground Solar Power',
-                                                         'Wind Power (kW)','Fuel Cell (kW)','Geothermal Power (kW)',
-                                                         'Concentrating Solar Power (kW)']].sum(axis=1)
+        self.frpp_df['Total Power (kW)'] = self.frpp_df[['Rooftop Solar Power','Ground Solar Power Built',
+                                                         'Wind Power Built (kW)','Fuel Cell (kW)','Geothermal Power Built (kW)',
+                                                         'Concentrating Solar Power Built(kW)']].sum(axis=1)
            
-        self.frpp_df['Total Energy (kWh)'] = self.frpp_df[['Annual Rooftop Solar Power (kWh/yr)','Annual Ground Solar Power (kWh/yr)',
-                                                          'Annual Wind Power (kWh/yr)','Annual Fuel Cell (kW/yr)',
-                                                          'Annual Geothermal Power (kWh/yr)','Annual Concentrating Solar Power (kWh)']].sum(axis=1)
+        self.frpp_df['Total Energy (kWh)'] = self.frpp_df[['Annual Rooftop Solar Power (kWh/yr)','Ground Solar Energy Built (kWh/yr)',
+                                                          'Wind Energy Built (kWh/yr)','Annual Fuel Cell (kW/yr)',
+                                                          'Geothermal Energy Built (kWh/yr)','Concentrating Solar Energy Built (kWh)']].sum(axis=1)
         
 
         ''' Build CFE Energy Usage and Transition Table '''
@@ -706,7 +730,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Wind</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_wind:>12}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_wind:>12}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_wind_built:>22}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Wind Power (kW)'].sum()*0.001:>33,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Wind Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
@@ -715,7 +739,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Rooftop Solar PV</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_solar_roof:>15}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_solar_roof:>15}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_solar_roof_built:>26}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Rooftop Solar Power'].sum()*0.001:>37,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
@@ -724,7 +748,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Ground Mounted Solar PV</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_solar_grnd:>16}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_solar_grnd:>16}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built{n_solar_grnd_built:>27}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Ground Solar Power'].sum()*0.001:>36,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
@@ -733,7 +757,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Hydrogen Fuel Cell</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_fuelcell:>17}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_fuelcell:>17}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_fuelcell_built:>27}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Fuel Cell (kW)'].sum()*0.001:>38,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
@@ -742,7 +766,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Geothermal Power</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_geot:>14}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_geot:>14}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_geot_built:>24}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Geothermal Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Geothermal Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
@@ -751,7 +775,7 @@ class MainWindow(QMainWindow):
                                     "pty;  -qt-block-indent:0; text-indent:0px; font-size:14pt; color:#000000;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Concentrating Solar</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites avaialable:{n_conc_sol:>14}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_conc_sol:>14}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_conc_sol_built:>25}</span></p>\n"
             "<p "
                                     f"style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Concentrating Solar Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
@@ -775,12 +799,19 @@ class MainWindow(QMainWindow):
         self.cfe_bar_canvas.axes.set_xticks(x + width, year_ind)
         self.cfe_bar_canvas.axes.legend(loc='upper right', ncols=2)
 
+        self.setup_econ_page(agency_energy_data['Electricity (MWh)'].values[0],
+                              agency_price_data['Electricity'].values[0])
+        self.build_econ_model()
+
         self.stackedWidget.setCurrentIndex(2)
 
     def owner_switch(self):
         print()
 
     def econ_val_changed(self):
+        # Begin by setting the derived quantaties        
+        # need to make sure to set the energy storage (kw) lineedit each time
+        # need to make sure to set the unit cost lineedit each time
         print()
 
     def fix_capital_slider(self):
@@ -808,6 +839,170 @@ class MainWindow(QMainWindow):
         print() 
 
     # Functions not tied to any button
+    def build_econ_model(self):
+        pwr_key = self.df_header_from_econ_cfe(self.econ_cfe_comboBox.currentText())
+        eng_key = self.df_header_from_econ_cfe(self.econ_cfe_comboBox.currentText(), req="Energy")
+        # Average install cost in ($/kW)
+        # Fixed O&M cost in ($/kW/year)
+        cost = {"Rooftop Solar": {"install_cost": 1592., "fixed_om": 18.},
+            "Ground-Mounted Solar": {"install_cost": 1327., "fixed_om": 18.},
+            "Wind": {"install_cost": 1718., "fixed_om": 42.},
+            "Geothermal": {"install_cost": 3076., "fixed_om": 143.22},
+            "Hydrogen Fuel Cells": {"install_cost": 6639., "fixed_om": 30.65},
+            "Concentrating Solar": {"install_cost": 2383., "fixed_om": 67.32}}
+        cur_year = datetime.now().year
+        year_ind = list(range(cur_year + 1,cur_year + 1 +int(self.econ_proj_life_lineEdit.text())))
+        self.econ_df['Year'] = year_ind
+
+        investment = cost[self.econ_cfe_comboBox.currentText()]['install_cost']* \
+            float(self.econ_power_produced_lineEdit.text())*1000
+        strg_cost = 0
+        try:
+            eng_strg_pec = float(self.econ_energy_storage_lineEdit.text())
+            strg_cost = self.econ_calc_engstor_lineEdit.text()*1383. + \
+                ((0.*self.frpp_df[eng_key].sum()/1000.)*(eng_strg_pec/100))
+            # The ^ 0 is listed as the fuel cost ($/MWh)
+        except: 
+            pass
+        
+        # Annual Loan Payments
+        dmy = np.zeros(len(year_ind))
+        dmy[:] = (investment * (float(self.econ_interest_rate_lineEdit.text())/100.)) / \
+            (1-(1+(float(self.econ_interest_rate_lineEdit.text())/100.))**\
+             (-float(self.econ_cont_per_lineEdit.text())))
+        self.econ_df['Anual Loan Payments'] = dmy.tolist() 
+        
+        # MACRS depreciation
+        dmy = np.zeros(len(year_ind))
+        dmy[:] = np.nan 
+        macrs_methods = {0: [3, 200], 1: [5, 200], 2: [7, 200],
+                         3: [10,200], 4: [15,150], 5: [20,150]}
+        macrs = macrs_methods[self.econ_marcs_comboBox.currentIndex()]
+        if self.econ_cfe_comboBox.currentText() == "Wind":
+            dereciable = investment * 0.6
+        else:
+            dereciable = ((100-float(self.econ_fed_tax_cred_lineEdit.text())/2.)/100.) * investment * 0.6
+        dmy[0] = dereciable * (1/macrs[0]) * macrs[1] * 0.5
+        for qq in range(1,min(macrs[0], len(year_ind))):
+            dmy[qq] = dereciable - dmy[qq-1] * (1/macrs[0]) * macrs[1]
+        
+        self.econ_df['MACRS Depreciation'] = dmy.tolist() 
+
+        # Energy by year
+        dmy = np.zeros(len(year_ind))
+        dmy[0] = self.frpp_df[eng_key].sum()
+        if self.econ_cfe_comboBox.currentText() in ["Rooftop Solar", "Ground-Mounted Solar","Hydrogen Fuel Cells"]:
+            for qq in range(1,len(dmy)):
+                dmy[qq] = dmy[qq-1] *(1-float(self.econ_ann_deg_lineEdit.text())/100.)
+        else:
+            dmy[:] = self.frpp_df[eng_key].sum()
+
+        self.econ_df['Energy (kWh)'] = dmy.tolist() 
+
+        # Discounted Energy
+        self.econ_df['Discounted Energy'] = self.econ_df['Energy (kWh)'] / \
+            (1+float(self.econ_interest_rate_lineEdit.text())/100.)**(self.econ_df['Year']-cur_year)
+
+        # Price 
+        dmy = np.zeros(len(year_ind))
+        dmy[0] = float(self.econ_unit_cost_lineEdit.text())
+        for qq in range(1,len(dmy)):
+            dmy[qq] = dmy[0]*(1+float(self.econ_price_esc_lineEdit.text())/100.)**(year_ind[qq]-cur_year)
+        self.econ_df['Price ($/kWh)'] = dmy.tolist() 
+
+        # Revenue
+        dmy = np.zeros(len(year_ind))
+        if self.third_party_radioButton.isChecked():
+            for qq in range(len(dmy)):
+                if float(self.econ_cont_per_lineEdit.text()) < float(self.econ_proj_life_lineEdit.text()):
+                    dmy[qq] = self.econ_df.iloc[qq]['Energy (kWh)'] * self.econ_df.iloc[qq]['Price ($/kWh)']
+                else:
+                    dmy[qq] = self.econ_df.iloc[qq]['Energy (kWh)'] * float(self.econ_unit_cost_lineEdit.text())
+        self.econ_df['Revenue ($)'] = dmy.tolist()
+
+        # Cost without CFE Contract
+        self.econ_df['Cost without CFE ($)'] = (1 + float(self.econ_price_esc_lineEdit.text())/100)**(self.econ_df['Year']-cur_year)*\
+            float(self.econ_unit_cost_lineEdit.text())*self.econ_df['Energy (kWh)'] 
+        
+        # Government Annual Savings ($)
+        self.econ_df['Government Annual Savings ($)'] = self.econ_df['Cost without CFE ($)'] - self.econ_df['Revenue ($)']
+
+        # Battery Replacement 
+        n_years = int(float(self.econ_bat_rep_lineEdit.text()))
+        dmy = np.zeros(len(year_ind))
+        for qq in range(1,len(dmy)):
+            if qq%n_years == 0:
+                dmy[qq] = strg_cost
+        self.econ_df['Battery Replacement Cost ($)'] = dmy.tolist()
+
+        # Insurance 
+        self.econ_df['Insurance ($)'] = investment*(float(self.econ_insur_rate_lineEdit.text())/100.)*\
+            (1 + float(self.econ_inflat_rate_lineEdit.text())/100)**(self.econ_df['Year']-cur_year)
+        
+        # O&M Cost
+        om_cost = cost[self.econ_cfe_comboBox.currentText()]['fixed_om']*\
+            float(self.econ_power_produced_lineEdit.text()) * 1000.
+        dmy = np.zeros(len(year_ind))
+        dmy[0] = om_cost
+        for qq in range(1,len(dmy)):
+            dmy[qq] = dmy[qq-1]*(1+float(self.econ_inflat_rate_lineEdit.text())/100.)**(qq)
+        self.econ_df['OM Cost ($)'] = dmy.tolist()
+
+        # Government Expenses 
+        dmy = np.zeros(len(year_ind))
+        self.econ_df['Government Expenses ($)'] = dmy.tolist()
+        if self.gov_radioButton.toggled():
+            self.econ_df['Government Expenses ($)'] = 0 - self.econ_df['Battery Replacement Cost ($)'] -\
+                 self.econ_df['Insurance ($)'] - self.econ_df['OM Cost ($)']
+
+        # After-tax Profit + Depreciation ($)
+        if self.third_party_radioButton.toggled():
+            self.econ_df['After-tax Profit + Depreciation ($)'] = (self.econ_df['Revenue ($)'] - self.econ_df['OM Cost ($)'] - \
+                           self.econ_df['MACRS Depreciation'] - self.econ_df['Insurance ($)'] - self.econ_df['Battery Replacement Cost ($)']) *\
+                           (1-float(self.econ_tax_rate_lineEdit.text())*0.01) + self.econ_df['MACRS Depreciation']
+        else:
+            self.econ_df['After-tax Profit + Depreciation ($)'] = -1*(self.econ_df['Battery Replacement Cost ($)'] -\
+                                                                       self.econ_df['Insurance ($)'] - self.econ_df['OM Cost ($)'])
+
+        # Net Taxes ($)
+        if self.third_party_radioButton.toggled():
+            dmy = np.zeros(len(year_ind))
+            self.econ_df['Net Taxes ($)'] = dmy.tolist()
+        else:
+            self.econ_df['Net Taxes ($)'] = self.econ_df['Revenue ($)'] - self.econ_df['After-tax Profit + Depreciation ($)']
+
+        # Cash Flow
+        tax_cred = np.zeros(len(year_ind))
+        prod_ben = np.zeros(len(year_ind))
+        if self.third_party_radioButton.toggled():
+            for qq in range(int(float(self.econ_tax_cred_per_lineEdit.text()))):
+                tax_cred[qq] = investment * float(self.econ_fed_tax_cred_lineEdit.text())/100.
+            for qq in range(10):
+                prod_ben[qq] = 0.015 * (1+float(self.econ_price_esc_lineEdit.text())/100.)**(qq+1) * self.econ_df.iloc[qq]['Energy (kWh)']
+        rec = np.zeros(len(year_ind))
+        for qq in range(len(rec)):
+            rec[qq] = float(self.econ_rec_lineEdit.text()) * self.econ_df.iloc[qq]['Energy (kWh)'] / 1000.
+        #### PTC tax credit (only counts for the first 10 years)
+        ptc = np.zeros(len(year_ind))
+        ptc[0] = investment * 0.4
+
+        dmy = np.zeros(len(year_ind))
+        for qq in range(len(dmy)):
+            if self.gov_radioButton.toggled():
+                dmy[qq] = self.econ_df.iloc[qq]['After-tax Profit + Depreciation ($)'] + self.econ_df.iloc[qq]['MACRS Depreciation']\
+                      + self.econ_df.iloc[qq]['Cost without CFE ($)'] 
+            else:
+                dmy[qq] = self.econ_df.iloc[qq]['After-tax Profit + Depreciation ($)']
+            if self.econ_cfe_comboBox.currentText() in ["Rooftop Solar", "Ground-Mounted Solar", "Concentrating Solar", "Geothermal"]:
+                dmy[qq] += tax_cred[qq] + rec[qq]
+            elif self.econ_cfe_comboBox.currentText() in ["Wind"]:
+                dmy[qq] += ptc[qq] + prod_ben[qq] + rec[qq]
+
+        
+
+
+        a = 1
+
     def validate_page1(self)->bool | list:
         """
         Goes through all of page one and makes sure that all
@@ -887,6 +1082,175 @@ class MainWindow(QMainWindow):
         out_temp[:] = self.model_assump['geo_therm']['system']['turb_outlet_temp']
         return delta_h, in_temp, out_temp
         
+    def setup_econ_page(self, tot_eng:float, tot_price:float)->None:        
+        # Establish CFE dropdown menu        
+        for key, value in {'Wind Power (kW)': 'Wind', 'Rooftop Solar Power': "Rooftop Solar", 
+                    'Ground Solar Power': "Ground-Mounted Solar",
+                    'Fuel Cell (kW)': "Hydrogen Fuel Cells", 'Geothermal Power (kW)': "Geothermal", 
+                    'Concentrating Solar Power (kW)': "Concentrating Solar"}.items():
+            if self.frpp_df[key].sum() > 0:
+                self.econ_cfe_comboBox.addItem(value)
+        self.econ_cfe_comboBox.blockSignals(True)
+        self.econ_cfe_comboBox.setCurrentIndex(0)
+        self.econ_cfe_comboBox.blockSignals(False)
+                
+        cur_dict = self.model_assump[self.assump_from_econ_cfe()]['gov_rates']
+
+        # set ownership to government
+        self.gov_radioButton.blockSignals(True)
+        self.gov_radioButton.setChecked(True)
+        self.gov_radioButton.blockSignals(False)
+
+        # set input values
+        # Top input box
+        self.econ_power_produced_lineEdit.blockSignals(True)
+        self.econ_power_produced_lineEdit.setText(str(self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001))
+        self.econ_power_produced_lineEdit.blockSignals(False)
+
+        self.econ_energy_storage_lineEdit.blockSignals(True)
+        self.econ_energy_storage_lineEdit.setText("0")
+        self.econ_energy_storage_lineEdit.blockSignals(False)
+
+        self.econ_bat_rep_lineEdit.blockSignals(True)
+        self.econ_bat_rep_lineEdit.setText("5")
+        self.econ_bat_rep_lineEdit.blockSignals(False)
+
+        self.econ_calc_engstor_lineEdit.setText("0.0")
+
+        self.econ_agency_cons_lineEdit.blockSignals(True)
+        self.econ_agency_cons_lineEdit.setText(str(tot_eng))
+        self.econ_agency_cons_lineEdit.blockSignals(False)
+
+        self.econ_agency_elec_cost_lineEdit.blockSignals(True)
+        self.econ_agency_elec_cost_lineEdit.setText(str(tot_price))
+        self.econ_agency_elec_cost_lineEdit.blockSignals(False)
+
+        self.econ_unit_cost_lineEdit.setText(f"{tot_price/(tot_eng*1000):.6f}")
+
+        # Bottom input box
+        self.econ_interest_rate_lineEdit.blockSignals(True)
+        self.econ_interest_rate_lineEdit.setText("2.0")
+        self.econ_interest_rate_lineEdit.blockSignals(False)
+
+        self.econ_proj_life_lineEdit.blockSignals(True)
+        self.econ_proj_life_lineEdit.setText(str(cur_dict['project_life']))
+        self.econ_proj_life_lineEdit.blockSignals(False)
+
+        if "Solar" in self.econ_cfe_comboBox.currentText() or "Hydrogen" in self.econ_cfe_comboBox.currentText():
+            self.econ_ann_deg_lineEdit.blockSignals(True)
+            self.econ_ann_deg_lineEdit.setText("0.5")
+            self.econ_ann_deg_lineEdit.blockSignals(False)
+        else:
+            self.econ_ann_deg_lineEdit.setEnabled(False)
+
+        self.econ_rec_lineEdit.blockSignals(True)
+        self.econ_rec_lineEdit.setText("19")
+        self.econ_rec_lineEdit.blockSignals(False)
+
+        self.econ_fixed_finance_lineEdit.blockSignals(True)
+        self.econ_fixed_finance_lineEdit.setText("100")
+        self.econ_fixed_finance_lineEdit.blockSignals(False)
+        self.econ_fixed_finance_Slider.blockSignals(True)
+        self.econ_fixed_finance_Slider.setValue(100)
+        self.econ_fixed_finance_Slider.blockSignals(False)
+        
+        self.econ_cont_per_lineEdit.blockSignals(True)
+        self.econ_cont_per_lineEdit.setText("2")
+        self.econ_cont_per_lineEdit.blockSignals(False)
+        self.econ_cont_per_Slider.blockSignals(True)
+        self.econ_cont_per_Slider.setValue(2)
+        self.econ_cont_per_Slider.blockSignals(False)
+
+        self.econ_tax_rate_lineEdit.blockSignals(True)
+        self.econ_tax_rate_lineEdit.setText(str(cur_dict['taxation']))
+        self.econ_tax_rate_lineEdit.blockSignals(False)
+        self.econ_tax_rate_Slider.blockSignals(True)
+        self.econ_tax_rate_Slider.setValue(int(cur_dict['taxation']))
+        self.econ_tax_rate_Slider.blockSignals(False)
+
+        self.econ_insur_rate_lineEdit.blockSignals(True)
+        self.econ_insur_rate_lineEdit.setText("5.0")
+        self.econ_insur_rate_lineEdit.blockSignals(False)
+        self.econ_insur_rate_Slider.blockSignals(True)
+        self.econ_insur_rate_Slider.setValue(50) # increments of 0.1
+        self.econ_insur_rate_Slider.blockSignals(False)
+
+        self.econ_inflat_rate_lineEdit.blockSignals(True)
+        self.econ_inflat_rate_lineEdit.setText(str(cur_dict['inflation_rate']))
+        self.econ_inflat_rate_lineEdit.blockSignals(False)
+        self.econ_inflat_rate_Slider.blockSignals(True)
+        self.econ_inflat_rate_Slider.setValue(max(1,int(cur_dict['inflation_rate']*10))) # increments of 0.1
+        self.econ_inflat_rate_Slider.blockSignals(False)
+
+        self.econ_fed_tax_cred_lineEdit.blockSignals(True)
+        self.econ_fed_tax_cred_lineEdit.setText("0.0")
+        self.econ_fed_tax_cred_lineEdit.setEnabled(False)
+        self.econ_fed_tax_cred_lineEdit.blockSignals(False)
+        self.econ_fed_tax_cred_Slider.blockSignals(True)
+        self.econ_fed_tax_cred_Slider.setValue(0) 
+        self.econ_fed_tax_cred_Slider.setEnabled(False)
+        self.econ_fed_tax_cred_Slider.blockSignals(False)
+
+        self.econ_tax_cred_per_lineEdit.blockSignals(True)
+        self.econ_tax_cred_per_lineEdit.setText("0.0")
+        self.econ_tax_cred_per_lineEdit.setEnabled(False)
+        self.econ_tax_cred_per_lineEdit.blockSignals(False)
+        self.econ_tax_cred_per_Slider.blockSignals(True)
+        self.econ_tax_cred_per_Slider.setValue(1) 
+        self.econ_tax_cred_per_Slider.setEnabled(False)
+        self.econ_tax_cred_per_Slider.blockSignals(False)
+
+        esc_val = 0.5 * cur_dict['electric_cost_escalation_lb'] + cur_dict['electric_cost_escalation_lb']
+        self.econ_price_esc_lineEdit.blockSignals(True)
+        self.econ_price_esc_lineEdit.setText(str(esc_val))
+        self.econ_price_esc_lineEdit.blockSignals(False)
+        self.econ_price_esc_Slider.blockSignals(True)
+        self.econ_price_esc_Slider.setValue(24) 
+        self.econ_price_esc_Slider.blockSignals(False)
+   
+    def df_header_from_econ_cfe(self, req="Power"):        
+        cfe_text = self.econ_cfe_comboBox.currentText()
+        if req == "Power":
+            if cfe_text == "Rooftop Solar":
+                return 'Rooftop Solar Power'
+            elif cfe_text == "Ground-Mounted Solar": 
+                return 'Ground Solar Power'
+            elif cfe_text == "Wind": 
+                return 'Wind Power (kW)'
+            elif cfe_text == "Geothermal":
+                return 'Geothermal Power (kW)'
+            elif cfe_text == "Hydrogen Fuel Cells":
+                return 'Fuel Cell (kW)'
+            elif cfe_text == "Concentrating Solar":
+                return 'Concentrating Solar Power (kW)'
+        elif req == "Energy":
+            if cfe_text == "Rooftop Solar":
+                return 'Annual Rooftop Solar Power (kWh/yr)'
+            elif cfe_text == "Ground-Mounted Solar": 
+                return 'Annual Ground Solar Power (kWh/yr)'
+            elif cfe_text == "Wind": 
+                return 'Annual Wind Power (kWh/yr)'
+            elif cfe_text == "Geothermal":
+                return 'Annual Geothermal Power (kWh/yr)'
+            elif cfe_text == "Hydrogen Fuel Cells":
+                return 'Annual Fuel Cell (kW/yr)'
+            elif cfe_text == "Concentrating Solar":
+                return 'Annual Concentrating Solar Power (kWh)'
+        
+    def assump_from_econ_cfe(self):        
+        cfe_text = self.econ_cfe_comboBox.currentText()
+        if cfe_text == "Rooftop Solar":
+            return 'solar'
+        elif cfe_text == "Ground-Mounted Solar": 
+            return 'solar'
+        elif cfe_text == "Wind": 
+            return 'wind'
+        elif cfe_text == "Geothermal":
+            return 'geo_therm'
+        elif cfe_text == "Hydrogen Fuel Cells":
+            return 'hydrogen'
+        elif cfe_text == "Concentrating Solar":
+            return 'conc_solar'
 
 
 

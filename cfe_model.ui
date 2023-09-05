@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1356</width>
+    <width>1349</width>
     <height>1148</height>
    </rect>
   </property>
@@ -934,7 +934,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1294</width>
+                 <width>1287</width>
                  <height>1020</height>
                 </rect>
                </property>
@@ -1217,6 +1217,12 @@ background-color: rgb(200, 200, 200);</string>
                         <layout class="QHBoxLayout" name="horizontalLayout_9">
                          <item>
                           <layout class="QFormLayout" name="formLayout_5">
+                           <property name="labelAlignment">
+                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                           </property>
+                           <property name="formAlignment">
+                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                           </property>
                            <property name="topMargin">
                             <number>0</number>
                            </property>
@@ -1262,13 +1268,6 @@ background-color: rgb(200, 200, 200);</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="3" column="1">
-                            <widget class="QLineEdit" name="econ_ann_deg_lineEdit">
-                             <property name="styleSheet">
-                              <string notr="true">background-color: rgb(255, 255, 255);</string>
-                             </property>
-                            </widget>
-                           </item>
                            <item row="2" column="1">
                             <widget class="QComboBox" name="econ_marcs_comboBox">
                              <property name="styleSheet">
@@ -1307,6 +1306,28 @@ background-color: rgb(200, 200, 200);</string>
                                <string>20</string>
                               </property>
                              </item>
+                            </widget>
+                           </item>
+                           <item row="4" column="0">
+                            <widget class="QLabel" name="econ_rec_label">
+                             <property name="text">
+                              <string>Renewable Energy 
+Certificate: REC ($/MWh)</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="4" column="1">
+                            <widget class="QLineEdit" name="econ_rec_lineEdit">
+                             <property name="styleSheet">
+                              <string notr="true">background-color: rgb(255, 255, 255);</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="3" column="1">
+                            <widget class="QLineEdit" name="econ_ann_deg_lineEdit">
+                             <property name="styleSheet">
+                              <string notr="true">background-color: rgb(255, 255, 255);</string>
+                             </property>
                             </widget>
                            </item>
                           </layout>
@@ -1548,6 +1569,12 @@ background-color: rgb(200, 200, 200);</string>
                            </item>
                            <item row="7" column="2">
                             <widget class="QSlider" name="econ_price_esc_Slider">
+                             <property name="minimum">
+                              <number>0</number>
+                             </property>
+                             <property name="maximum">
+                              <number>49</number>
+                             </property>
                              <property name="orientation">
                               <enum>Qt::Horizontal</enum>
                              </property>
@@ -1790,7 +1817,7 @@ background-color: rgb(200, 200, 200);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1356</width>
+     <width>1349</width>
      <height>22</height>
     </rect>
    </property>
