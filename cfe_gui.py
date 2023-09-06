@@ -9,6 +9,7 @@ import json
 import os
 import pandas as pd
 import numpy as np
+import numpy_financial as npf
 import geopandas as gpd
 import rasterio
 from pyproj import Transformer
@@ -31,9 +32,16 @@ DEFAULT_ERROR = u"background-color: rgb(255, 103, 103);"
 class MplCanvas(FigureCanvasQTAgg):
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        super(MplCanvas, self).__init__(fig)
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
+        super(MplCanvas, self).__init__(self.fig)    
+
+
+# class dynamic_canvas(FigureCanvasQTAgg):
+
+#     def __init__(self, parent=None, width=5, height=4):
+#         self.dyn_canvas = FigureCanvas(Figure(figsize=(width, height)))
+#         self.dyn_ax = self.dyn_canvas.figure.subplots()
 
 
 class MainWindow(QMainWindow):
@@ -61,6 +69,11 @@ class MainWindow(QMainWindow):
         self.toolbar_pg3 = NavigationToolbar(self.cfe_bar_canvas, self)
         self.cfe_barchrt_layout.addWidget(self.toolbar_pg3)
         self.cfe_barchrt_layout.addWidget(self.cfe_bar_canvas)
+
+        self.econ_canvas = MplCanvas(self, width=8, height=4, dpi=100)
+        self.econ_toolbar = NavigationToolbar(self.econ_canvas, self)
+        self.econ_NPV_layout.addWidget(self.econ_toolbar)
+        self.econ_NPV_layout.addWidget(self.econ_canvas)
         
         # Establish function connections
         ''' Landing Page '''
@@ -809,9 +822,32 @@ class MainWindow(QMainWindow):
         print()
 
     def econ_val_changed(self):
-        # Begin by setting the derived quantaties        
-        # need to make sure to set the energy storage (kw) lineedit each time
-        # need to make sure to set the unit cost lineedit each time
+        # Begin by setting the derived quantaties   
+        tot_eng = self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001   
+        self.econ_power_produced_lineEdit.blockSignals(True)
+        self.econ_power_produced_lineEdit.setText(f"{tot_eng:.2f}")
+        self.econ_power_produced_lineEdit.blockSignals(False)
+
+        self.econ_calc_engstor_lineEdit.blockSignals(True)
+        self.econ_calc_engstor_lineEdit.setText(f"{(float(self.econ_energy_storage_lineEdit.text())/100.)*1000*tot_eng:.2f}")
+        self.econ_calc_engstor_lineEdit.blockSignals(False)       
+
+        cons = float(self.econ_agency_cons_lineEdit.text())
+        tot_price = float(self.econ_agency_elec_cost_lineEdit.text())
+        self.econ_unit_cost_lineEdit.setText(f"{tot_price/(cons*1000):.6f}") 
+
+        if "Solar" in self.econ_cfe_comboBox.currentText() or "Hydrogen" in self.econ_cfe_comboBox.currentText():
+            self.econ_ann_deg_lineEdit.setEnabled(True)
+            try:
+                float(self.econ_ann_deg_lineEdit.text())
+            except ValueError:
+                self.econ_ann_deg_lineEdit.blockSignals(True)
+                self.econ_ann_deg_lineEdit.setText("0.5")
+                self.econ_ann_deg_lineEdit.blockSignals(False)
+        else:
+            self.econ_ann_deg_lineEdit.setEnabled(False)
+
+        self.build_econ_model()
         print()
 
     def fix_capital_slider(self):
@@ -840,8 +876,8 @@ class MainWindow(QMainWindow):
 
     # Functions not tied to any button
     def build_econ_model(self):
-        pwr_key = self.df_header_from_econ_cfe(self.econ_cfe_comboBox.currentText())
-        eng_key = self.df_header_from_econ_cfe(self.econ_cfe_comboBox.currentText(), req="Energy")
+        self.econ_df = pd.DataFrame()
+        eng_key = self.df_header_from_econ_cfe(req="Energy")
         # Average install cost in ($/kW)
         # Fixed O&M cost in ($/kW/year)
         cost = {"Rooftop Solar": {"install_cost": 1592., "fixed_om": 18.},
@@ -851,40 +887,42 @@ class MainWindow(QMainWindow):
             "Hydrogen Fuel Cells": {"install_cost": 6639., "fixed_om": 30.65},
             "Concentrating Solar": {"install_cost": 2383., "fixed_om": 67.32}}
         cur_year = datetime.now().year
-        year_ind = list(range(cur_year + 1,cur_year + 1 +int(self.econ_proj_life_lineEdit.text())))
+        year_ind = list(range(cur_year + 1,cur_year + 1 + int(float(self.econ_proj_life_lineEdit.text()))))
         self.econ_df['Year'] = year_ind
 
-        investment = cost[self.econ_cfe_comboBox.currentText()]['install_cost']* \
-            float(self.econ_power_produced_lineEdit.text())*1000
         strg_cost = 0
         try:
             eng_strg_pec = float(self.econ_energy_storage_lineEdit.text())
-            strg_cost = self.econ_calc_engstor_lineEdit.text()*1383. + \
+            strg_cost = float(self.econ_calc_engstor_lineEdit.text())*1383. + \
                 ((0.*self.frpp_df[eng_key].sum()/1000.)*(eng_strg_pec/100))
             # The ^ 0 is listed as the fuel cost ($/MWh)
         except: 
             pass
+
+        investment = cost[self.econ_cfe_comboBox.currentText()]['install_cost']* \
+            float(self.econ_power_produced_lineEdit.text())*1000 + strg_cost        
         
         # Annual Loan Payments
         dmy = np.zeros(len(year_ind))
-        dmy[:] = (investment * (float(self.econ_interest_rate_lineEdit.text())/100.)) / \
+        ind = int(float(self.econ_cont_per_lineEdit.text()))
+        dmy[:ind] = -1*(investment * (float(self.econ_interest_rate_lineEdit.text())/100.)) / \
             (1-(1+(float(self.econ_interest_rate_lineEdit.text())/100.))**\
              (-float(self.econ_cont_per_lineEdit.text())))
         self.econ_df['Anual Loan Payments'] = dmy.tolist() 
         
         # MACRS depreciation
         dmy = np.zeros(len(year_ind))
-        dmy[:] = np.nan 
-        macrs_methods = {0: [3, 200], 1: [5, 200], 2: [7, 200],
-                         3: [10,200], 4: [15,150], 5: [20,150]}
-        macrs = macrs_methods[self.econ_marcs_comboBox.currentIndex()]
-        if self.econ_cfe_comboBox.currentText() == "Wind":
-            dereciable = investment * 0.6
-        else:
-            dereciable = ((100-float(self.econ_fed_tax_cred_lineEdit.text())/2.)/100.) * investment * 0.6
-        dmy[0] = dereciable * (1/macrs[0]) * macrs[1] * 0.5
-        for qq in range(1,min(macrs[0], len(year_ind))):
-            dmy[qq] = dereciable - dmy[qq-1] * (1/macrs[0]) * macrs[1]
+        if self.third_party_radioButton.isChecked():
+            macrs_methods = {0: [3, 2.0], 1: [5, 2.0], 2: [7, 2.0],
+                            3: [10,2.0], 4: [15,1.5], 5: [20,1.5]}
+            macrs = macrs_methods[self.econ_marcs_comboBox.currentIndex()]
+            if self.econ_cfe_comboBox.currentText() == "Wind":
+                dereciable = investment * 0.6
+            else:
+                dereciable = ((100-float(self.econ_fed_tax_cred_lineEdit.text())/2.)/100.) * investment * 0.6
+            dmy[0] = dereciable * (1/macrs[0]) * macrs[1] * 0.5
+            for qq in range(1,min(macrs[0]+1, len(year_ind))):
+                dmy[qq] = dereciable - dmy[qq-1] * (1/macrs[0]) * macrs[1]
         
         self.econ_df['MACRS Depreciation'] = dmy.tolist() 
 
@@ -937,7 +975,7 @@ class MainWindow(QMainWindow):
 
         # Insurance 
         self.econ_df['Insurance ($)'] = investment*(float(self.econ_insur_rate_lineEdit.text())/100.)*\
-            (1 + float(self.econ_inflat_rate_lineEdit.text())/100)**(self.econ_df['Year']-cur_year)
+            (1 + float(self.econ_inflat_rate_lineEdit.text())/100)**(self.econ_df['Year']-(cur_year+1))
         
         # O&M Cost
         om_cost = cost[self.econ_cfe_comboBox.currentText()]['fixed_om']*\
@@ -945,18 +983,18 @@ class MainWindow(QMainWindow):
         dmy = np.zeros(len(year_ind))
         dmy[0] = om_cost
         for qq in range(1,len(dmy)):
-            dmy[qq] = dmy[qq-1]*(1+float(self.econ_inflat_rate_lineEdit.text())/100.)**(qq)
+            dmy[qq] = om_cost*(1+float(self.econ_inflat_rate_lineEdit.text())/100.)**(qq)
         self.econ_df['OM Cost ($)'] = dmy.tolist()
 
         # Government Expenses 
         dmy = np.zeros(len(year_ind))
         self.econ_df['Government Expenses ($)'] = dmy.tolist()
-        if self.gov_radioButton.toggled():
+        if self.gov_radioButton.isChecked():
             self.econ_df['Government Expenses ($)'] = 0 - self.econ_df['Battery Replacement Cost ($)'] -\
                  self.econ_df['Insurance ($)'] - self.econ_df['OM Cost ($)']
 
         # After-tax Profit + Depreciation ($)
-        if self.third_party_radioButton.toggled():
+        if self.third_party_radioButton.isChecked():
             self.econ_df['After-tax Profit + Depreciation ($)'] = (self.econ_df['Revenue ($)'] - self.econ_df['OM Cost ($)'] - \
                            self.econ_df['MACRS Depreciation'] - self.econ_df['Insurance ($)'] - self.econ_df['Battery Replacement Cost ($)']) *\
                            (1-float(self.econ_tax_rate_lineEdit.text())*0.01) + self.econ_df['MACRS Depreciation']
@@ -965,7 +1003,7 @@ class MainWindow(QMainWindow):
                                                                        self.econ_df['Insurance ($)'] - self.econ_df['OM Cost ($)'])
 
         # Net Taxes ($)
-        if self.third_party_radioButton.toggled():
+        if self.third_party_radioButton.isChecked():
             dmy = np.zeros(len(year_ind))
             self.econ_df['Net Taxes ($)'] = dmy.tolist()
         else:
@@ -974,7 +1012,7 @@ class MainWindow(QMainWindow):
         # Cash Flow
         tax_cred = np.zeros(len(year_ind))
         prod_ben = np.zeros(len(year_ind))
-        if self.third_party_radioButton.toggled():
+        if self.third_party_radioButton.isChecked():
             for qq in range(int(float(self.econ_tax_cred_per_lineEdit.text()))):
                 tax_cred[qq] = investment * float(self.econ_fed_tax_cred_lineEdit.text())/100.
             for qq in range(10):
@@ -988,7 +1026,7 @@ class MainWindow(QMainWindow):
 
         dmy = np.zeros(len(year_ind))
         for qq in range(len(dmy)):
-            if self.gov_radioButton.toggled():
+            if self.gov_radioButton.isChecked():
                 dmy[qq] = self.econ_df.iloc[qq]['After-tax Profit + Depreciation ($)'] + self.econ_df.iloc[qq]['MACRS Depreciation']\
                       + self.econ_df.iloc[qq]['Cost without CFE ($)'] 
             else:
@@ -997,11 +1035,65 @@ class MainWindow(QMainWindow):
                 dmy[qq] += tax_cred[qq] + rec[qq]
             elif self.econ_cfe_comboBox.currentText() in ["Wind"]:
                 dmy[qq] += ptc[qq] + prod_ben[qq] + rec[qq]
+        self.econ_df['Cash Flow ($)'] = dmy.tolist()
 
+        # Discounted Annualized
+        self.econ_df['Discounted Annualized ($)'] = (1/(1+float(self.econ_interest_rate_lineEdit.text())/ \
+                                                      100)**(self.econ_df['Year']-cur_year))*self.econ_df['Cash Flow ($)']
         
+        # Cumulative Cash Flow
+        dmy = np.zeros(len(year_ind))
+        dmy[0] = -1*investment + self.econ_df.iloc[0]['Discounted Annualized ($)']
+        for qq in range(1,len(dmy)):
+            dmy[qq] = dmy[qq-1] + self.econ_df.iloc[qq]['Discounted Annualized ($)']
+        self.econ_df['Cumulative Cash Flow ($)'] = dmy.tolist()
 
+        # Build the bar chart    
+        self.econ_canvas.axes.cla()    
+        x = np.arange(len(year_ind))  # the label locations
+        self.econ_canvas.axes.bar(x, self.econ_df['Cumulative Cash Flow ($)'].values, 0.8, label="NPV") 
+        self.econ_canvas.axes.grid(True, axis="y", color = "grey", linewidth = "1.4")          
 
-        a = 1
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        self.econ_canvas.axes.set_ylabel('Net Present Value ($)')
+        self.econ_canvas.axes.set_title('Cummulative Cash FLow by Fiscal Year')
+        self.econ_canvas.axes.set_xticks(x, year_ind)
+        self.econ_canvas.draw()
+
+        # Fill in the output textedits
+        ltZero = self.econ_df['Anual Loan Payments'] < 0
+        eqZero = self.econ_df['Anual Loan Payments'] == 0
+
+        self.econ_OM_lineEdit.setText(f"{om_cost:.2f}")
+        self.econ_net_cap_cost_lineEdit.setText(f"{investment:.2f}")
+        self.econ_irr_lineEdit.setText(f"{npf.irr(np.concatenate(([-investment],self.econ_df['Cash Flow ($)'].values[:])))*100:.2f}")
+        self.econ_dev_npv_lineEdit.setText(f"{self.econ_df['Discounted Annualized ($)'].sum():.2f}")
+        self.econ_total_energy_lineEdit.setText(f"{self.econ_df['Energy (kWh)'].sum():.2f}")
+        self.econ_developer_LCC_lineEdit.setText(
+                f"{self.econ_df[ltZero]['Insurance ($)'].sum() + self.econ_df[ltZero]['OM Cost ($)'].sum():.2f}")
+        if self.third_party_radioButton.isChecked():
+            total = self.econ_df[ltZero]['Revenue ($)'].sum() + self.econ_df[eqZero]['Battery Replacement Cost ($)'].sum() + \
+                self.econ_df[eqZero]['Insurance ($)'].sum() + self.econ_df[eqZero]['OM Cost ($)'].sum()            
+        else: 
+            total = investment + self.econ_df['Battery Replacement Cost ($)'].sum() + \
+                self.econ_df['Insurance ($)'].sum() + self.econ_df['OM Cost ($)'].sum()
+        self.econ_owner_LCC_lineEdit.setText(f"{total:.2f}")
+        self.econ_annual_payments_lineEdit.setText(f"{total/float(self.econ_cont_per_lineEdit.text()):.2f}")
+        self.econ_owner_savings_lineEdit.setText(f"{self.econ_df['Cost without CFE ($)'].sum()-total:.2f}")
+        if self.third_party_radioButton.isChecked():
+            lvl_cst = (npf.npv(float(self.econ_interest_rate_lineEdit.text())/100,\
+                np.concatenate(([-investment],self.econ_df['Revenue ($)'].values[:]))))*\
+                1000/self.econ_df['Discounted Energy'].sum()
+        else:
+            lvl_cst = (-npf.npv(float(self.econ_interest_rate_lineEdit.text())/100, \
+                np.concatenate(([-investment],self.econ_df['Government Expenses ($)'].values[:]))))*\
+                1000/self.econ_df['Discounted Energy'].sum()
+        self.lvl_cost_lineEdit.setText(f"{lvl_cst:.2f}")
+        self.cost_benefit_lineEdit.setText(f"{self.econ_df['Cost without CFE ($)'].sum()/total:.2f}")
+        smpl_pybk = total / (self.econ_df['Cost without CFE ($)'].sum()/ \
+                             float(self.econ_proj_life_lineEdit.text()))
+        self.simp_payback_lineEdit.setText(f"{smpl_pybk:.2f}")
+
 
     def validate_page1(self)->bool | list:
         """
@@ -1084,13 +1176,13 @@ class MainWindow(QMainWindow):
         
     def setup_econ_page(self, tot_eng:float, tot_price:float)->None:        
         # Establish CFE dropdown menu        
+        self.econ_cfe_comboBox.blockSignals(True)
         for key, value in {'Wind Power (kW)': 'Wind', 'Rooftop Solar Power': "Rooftop Solar", 
                     'Ground Solar Power': "Ground-Mounted Solar",
                     'Fuel Cell (kW)': "Hydrogen Fuel Cells", 'Geothermal Power (kW)': "Geothermal", 
                     'Concentrating Solar Power (kW)': "Concentrating Solar"}.items():
             if self.frpp_df[key].sum() > 0:
-                self.econ_cfe_comboBox.addItem(value)
-        self.econ_cfe_comboBox.blockSignals(True)
+                self.econ_cfe_comboBox.addItem(value)        
         self.econ_cfe_comboBox.setCurrentIndex(0)
         self.econ_cfe_comboBox.blockSignals(False)
                 
@@ -1104,7 +1196,7 @@ class MainWindow(QMainWindow):
         # set input values
         # Top input box
         self.econ_power_produced_lineEdit.blockSignals(True)
-        self.econ_power_produced_lineEdit.setText(str(self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001))
+        self.econ_power_produced_lineEdit.setText(f"{self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001:.2f}")
         self.econ_power_produced_lineEdit.blockSignals(False)
 
         self.econ_energy_storage_lineEdit.blockSignals(True)
@@ -1169,10 +1261,10 @@ class MainWindow(QMainWindow):
         self.econ_tax_rate_Slider.blockSignals(False)
 
         self.econ_insur_rate_lineEdit.blockSignals(True)
-        self.econ_insur_rate_lineEdit.setText("5.0")
+        self.econ_insur_rate_lineEdit.setText("0.5")
         self.econ_insur_rate_lineEdit.blockSignals(False)
         self.econ_insur_rate_Slider.blockSignals(True)
-        self.econ_insur_rate_Slider.setValue(50) # increments of 0.1
+        self.econ_insur_rate_Slider.setValue(5) # increments of 0.1
         self.econ_insur_rate_Slider.blockSignals(False)
 
         self.econ_inflat_rate_lineEdit.blockSignals(True)

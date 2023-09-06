@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1349</width>
-    <height>1148</height>
+    <height>808</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -803,7 +803,7 @@ text-decoration: underline;</string>
         <item>
          <widget class="QTabWidget" name="tabWidget">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="cfe_output_tab">
            <attribute name="title">
@@ -1697,42 +1697,42 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="5" column="0">
+                           <item row="6" column="0">
                             <widget class="QLabel" name="econ_owner_LCC_label">
                              <property name="text">
                               <string>Owner's LCC ($)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="5" column="1">
+                           <item row="6" column="1">
                             <widget class="QLineEdit" name="econ_owner_LCC_lineEdit">
                              <property name="readOnly">
                               <bool>true</bool>
                              </property>
                             </widget>
                            </item>
-                           <item row="6" column="0">
+                           <item row="7" column="0">
                             <widget class="QLabel" name="econ_annual_payments_label">
                              <property name="text">
                               <string>Annual Payments ($)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="6" column="1">
+                           <item row="7" column="1">
                             <widget class="QLineEdit" name="econ_annual_payments_lineEdit">
                              <property name="readOnly">
                               <bool>true</bool>
                              </property>
                             </widget>
                            </item>
-                           <item row="7" column="0">
+                           <item row="8" column="0">
                             <widget class="QLabel" name="econ_owner_savings_label">
                              <property name="text">
                               <string>Owner's Savings ($)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="7" column="1">
+                           <item row="8" column="1">
                             <widget class="QLineEdit" name="econ_owner_savings_lineEdit">
                              <property name="text">
                               <string/>
@@ -1742,47 +1742,57 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="8" column="0">
+                           <item row="9" column="0">
                             <widget class="QLabel" name="lvl_cost_label">
                              <property name="text">
                               <string>Levelized  Cost ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="8" column="1">
+                           <item row="9" column="1">
                             <widget class="QLineEdit" name="lvl_cost_lineEdit">
                              <property name="readOnly">
                               <bool>true</bool>
                              </property>
                             </widget>
                            </item>
-                           <item row="9" column="0">
+                           <item row="10" column="0">
                             <widget class="QLabel" name="cost_benefit_label">
                              <property name="text">
                               <string>Benefit/Cost Ratio</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="9" column="1">
+                           <item row="10" column="1">
                             <widget class="QLineEdit" name="cost_benefit_lineEdit">
                              <property name="readOnly">
                               <bool>true</bool>
                              </property>
                             </widget>
                            </item>
-                           <item row="10" column="0">
+                           <item row="11" column="0">
                             <widget class="QLabel" name="simp_payback_label">
                              <property name="text">
                               <string>Simple payback (yrs)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="10" column="1">
+                           <item row="11" column="1">
                             <widget class="QLineEdit" name="simp_payback_lineEdit">
                              <property name="readOnly">
                               <bool>true</bool>
                              </property>
                             </widget>
+                           </item>
+                           <item row="5" column="0">
+                            <widget class="QLabel" name="econ_developer_LCC_label">
+                             <property name="text">
+                              <string>Developer's LCC ($)</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="5" column="1">
+                            <widget class="QLineEdit" name="econ_developer_LCC_lineEdit"/>
                            </item>
                           </layout>
                          </item>
@@ -1796,7 +1806,46 @@ Certificate: REC ($/MWh)</string>
                  </widget>
                 </item>
                 <item>
-                 <layout class="QVBoxLayout" name="econ_NPV_layout"/>
+                 <widget class="QFrame" name="frame_2">
+                  <property name="frameShape">
+                   <enum>QFrame::StyledPanel</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_10">
+                   <item>
+                    <spacer name="verticalSpacer_7">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <layout class="QVBoxLayout" name="econ_NPV_layout">
+                     <item>
+                      <spacer name="horizontalSpacer_5">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
                 </item>
                </layout>
               </widget>
