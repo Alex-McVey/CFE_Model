@@ -803,7 +803,7 @@ text-decoration: underline;</string>
         <item>
          <widget class="QTabWidget" name="tabWidget">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="cfe_output_tab">
            <attribute name="title">
@@ -933,9 +933,9 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>0</y>
-                 <width>1287</width>
-                 <height>1020</height>
+                 <y>-50</y>
+                 <width>1270</width>
+                 <height>1044</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -1334,7 +1334,7 @@ Certificate: REC ($/MWh)</string>
                          </item>
                          <item>
                           <layout class="QGridLayout" name="gridLayout">
-                           <item row="2" column="2">
+                           <item row="1" column="2">
                             <widget class="QSlider" name="econ_tax_rate_Slider">
                              <property name="maximum">
                               <number>50</number>
@@ -1350,33 +1350,14 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="5" column="0">
+                           <item row="4" column="0">
                             <widget class="QLabel" name="econ_fed_tax_cred_label">
                              <property name="text">
                               <string>Federal Tax Credit (%)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="0" column="2">
-                            <widget class="QSlider" name="econ_fixed_finance_Slider">
-                             <property name="styleSheet">
-                              <string notr="true"/>
-                             </property>
-                             <property name="maximum">
-                              <number>100</number>
-                             </property>
-                             <property name="value">
-                              <number>100</number>
-                             </property>
-                             <property name="orientation">
-                              <enum>Qt::Horizontal</enum>
-                             </property>
-                             <property name="tickPosition">
-                              <enum>QSlider::TicksAbove</enum>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="3" column="2">
+                           <item row="2" column="2">
                             <widget class="QSlider" name="econ_insur_rate_Slider">
                              <property name="minimum">
                               <number>1</number>
@@ -1395,28 +1376,42 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="1" column="0">
+                           <item row="0" column="0">
                             <widget class="QLabel" name="econ_cont_per_label">
                              <property name="text">
                               <string>Contract Period (years)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="3" column="1">
+                           <item row="2" column="1">
                             <widget class="QLineEdit" name="econ_insur_rate_lineEdit">
                              <property name="styleSheet">
                               <string notr="true">background-color: rgb(255, 255, 255);</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="3" column="0">
+                           <item row="6" column="0">
+                            <widget class="QLabel" name="econ_price_esc_label">
+                             <property name="text">
+                              <string>Price Escalation (%/year)</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="2" column="0">
                             <widget class="QLabel" name="econ_insur_rate_label">
                              <property name="text">
                               <string>Insurance Rate (%)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="4" column="2">
+                           <item row="6" column="1">
+                            <widget class="QLineEdit" name="econ_price_esc_lineEdit">
+                             <property name="styleSheet">
+                              <string notr="true">background-color: rgb(255, 255, 255);</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="3" column="2">
                             <widget class="QSlider" name="econ_inflat_rate_Slider">
                              <property name="minimum">
                               <number>1</number>
@@ -1435,21 +1430,14 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="0" column="1">
-                            <widget class="QLineEdit" name="econ_fixed_finance_lineEdit">
-                             <property name="styleSheet">
-                              <string notr="true">background-color: rgb(255, 255, 255);</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="2" column="1">
+                           <item row="1" column="1">
                             <widget class="QLineEdit" name="econ_tax_rate_lineEdit">
                              <property name="styleSheet">
                               <string notr="true">background-color: rgb(255, 255, 255);</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="1" column="1">
+                           <item row="0" column="1">
                             <widget class="QLineEdit" name="econ_cont_per_lineEdit">
                              <property name="styleSheet">
                               <string notr="true">background-color: rgb(255, 255, 255);</string>
@@ -1457,6 +1445,22 @@ Certificate: REC ($/MWh)</string>
                             </widget>
                            </item>
                            <item row="6" column="2">
+                            <widget class="QSlider" name="econ_price_esc_Slider">
+                             <property name="minimum">
+                              <number>0</number>
+                             </property>
+                             <property name="maximum">
+                              <number>49</number>
+                             </property>
+                             <property name="orientation">
+                              <enum>Qt::Horizontal</enum>
+                             </property>
+                             <property name="tickPosition">
+                              <enum>QSlider::TicksAbove</enum>
+                             </property>
+                            </widget>
+                           </item>
+                           <item row="5" column="2">
                             <widget class="QSlider" name="econ_tax_cred_per_Slider">
                              <property name="maximum">
                               <number>10</number>
@@ -1469,42 +1473,35 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="2" column="0">
+                           <item row="1" column="0">
                             <widget class="QLabel" name="econ_tax_rate_label">
                              <property name="text">
                               <string>Tax Rate (%)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="4" column="0">
+                           <item row="3" column="0">
                             <widget class="QLabel" name="econ_inflat_rate_label">
                              <property name="text">
                               <string>Inflation Rate (%)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="4" column="1">
+                           <item row="3" column="1">
                             <widget class="QLineEdit" name="econ_inflat_rate_lineEdit">
                              <property name="styleSheet">
                               <string notr="true">background-color: rgb(255, 255, 255);</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="5" column="1">
+                           <item row="4" column="1">
                             <widget class="QLineEdit" name="econ_fed_tax_cred_lineEdit">
                              <property name="styleSheet">
                               <string notr="true">background-color: rgb(255, 255, 255);</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="0" column="0">
-                            <widget class="QLabel" name="econ_fixed_finance_label">
-                             <property name="text">
-                              <string>Fixed Capital Financing</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="1" column="2">
+                           <item row="0" column="2">
                             <widget class="QSlider" name="econ_cont_per_Slider">
                              <property name="minimum">
                               <number>1</number>
@@ -1523,7 +1520,7 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="5" column="2">
+                           <item row="4" column="2">
                             <widget class="QSlider" name="econ_fed_tax_cred_Slider">
                              <property name="maximum">
                               <number>50</number>
@@ -1539,47 +1536,17 @@ Certificate: REC ($/MWh)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="6" column="0">
+                           <item row="5" column="0">
                             <widget class="QLabel" name="econ_tax_cred_per_label">
                              <property name="text">
                               <string>Tax Credit Period (years)</string>
                              </property>
                             </widget>
                            </item>
-                           <item row="6" column="1">
+                           <item row="5" column="1">
                             <widget class="QLineEdit" name="econ_tax_cred_per_lineEdit">
                              <property name="styleSheet">
                               <string notr="true">background-color: rgb(255, 255, 255);</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="7" column="0">
-                            <widget class="QLabel" name="econ_price_esc_label">
-                             <property name="text">
-                              <string>Price Escalation (%/year)</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="7" column="1">
-                            <widget class="QLineEdit" name="econ_price_esc_lineEdit">
-                             <property name="styleSheet">
-                              <string notr="true">background-color: rgb(255, 255, 255);</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item row="7" column="2">
-                            <widget class="QSlider" name="econ_price_esc_Slider">
-                             <property name="minimum">
-                              <number>0</number>
-                             </property>
-                             <property name="maximum">
-                              <number>49</number>
-                             </property>
-                             <property name="orientation">
-                              <enum>Qt::Horizontal</enum>
-                             </property>
-                             <property name="tickPosition">
-                              <enum>QSlider::TicksAbove</enum>
                              </property>
                             </widget>
                            </item>
@@ -1807,6 +1774,12 @@ Certificate: REC ($/MWh)</string>
                 </item>
                 <item>
                  <widget class="QFrame" name="frame_2">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>400</height>
+                   </size>
+                  </property>
                   <property name="frameShape">
                    <enum>QFrame::StyledPanel</enum>
                   </property>
