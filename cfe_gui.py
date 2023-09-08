@@ -817,20 +817,7 @@ class MainWindow(QMainWindow):
 
     def owner_switch(self):
         # Block the signals
-        self.econ_interest_rate_lineEdit.blockSignals(True)
-        self.econ_cont_per_lineEdit.blockSignals(True)
-        self.econ_cont_per_Slider.blockSignals(True)
-        self.econ_proj_life_lineEdit.blockSignals(True)
-        self.econ_inflat_rate_lineEdit.blockSignals(True)
-        self.econ_inflat_rate_Slider.blockSignals(True)
-        self.econ_fed_tax_cred_lineEdit.blockSignals(True)
-        self.econ_fed_tax_cred_Slider.blockSignals(True)
-        self.econ_tax_cred_per_lineEdit.blockSignals(True)
-        self.econ_tax_cred_per_Slider.blockSignals(True)
-        self.econ_tax_rate_lineEdit.blockSignals(True)
-        self.econ_tax_rate_Slider.blockSignals(True)
-        self.econ_price_esc_lineEdit.blockSignals(True)
-        self.econ_price_esc_Slider.blockSignals(True)
+        self.toggle_econ_signals(True)
         
         if self.gov_radioButton.isChecked():
             # Government Options
@@ -853,7 +840,7 @@ class MainWindow(QMainWindow):
             self.econ_tax_cred_per_Slider.setEnabled(False) 
             self.econ_tax_rate_lineEdit.setText(str(cur_dict['taxation']))  
             self.econ_tax_rate_Slider.setValue(int(cur_dict['taxation'])) 
-            esc_val = 0.5 * cur_dict['electric_cost_escalation_lb'] + cur_dict['electric_cost_escalation_lb'] 
+            esc_val = 0.5 * (cur_dict['electric_cost_escalation_lb'] + cur_dict['electric_cost_escalation_ub']) 
             self.econ_price_esc_lineEdit.setText(str(esc_val))
             self.econ_price_esc_Slider.setValue(24)                   
             
@@ -878,37 +865,32 @@ class MainWindow(QMainWindow):
             self.econ_tax_cred_per_Slider.setEnabled(True)
             self.econ_tax_rate_lineEdit.setText(str(cur_dict['taxation']))  
             self.econ_tax_rate_Slider.setValue(int(cur_dict['taxation']))
-            esc_val = 0.5 * cur_dict['electric_cost_escalation_lb'] + cur_dict['electric_cost_escalation_lb'] 
+            esc_val = 0.5 * (cur_dict['electric_cost_escalation_lb'] + cur_dict['electric_cost_escalation_ub']) 
             self.econ_price_esc_lineEdit.setText(str(esc_val))
             self.econ_price_esc_Slider.setValue(24)       
 
         # Unblock the signals
-        self.econ_interest_rate_lineEdit.blockSignals(False)
-        self.econ_cont_per_lineEdit.blockSignals(False)
-        self.econ_cont_per_Slider.blockSignals(False)
-        self.econ_proj_life_lineEdit.blockSignals(False)
-        self.econ_inflat_rate_lineEdit.blockSignals(False)
-        self.econ_inflat_rate_Slider.blockSignals(False) 
-        self.econ_fed_tax_cred_lineEdit.blockSignals(False)
-        self.econ_fed_tax_cred_Slider.blockSignals(False)
-        self.econ_tax_cred_per_lineEdit.blockSignals(False)
-        self.econ_tax_cred_per_Slider.blockSignals(False)  
-        self.econ_tax_rate_lineEdit.blockSignals(False)
-        self.econ_tax_rate_Slider.blockSignals(False)    
-        self.econ_price_esc_lineEdit.blockSignals(False)
-        self.econ_price_esc_Slider.blockSignals(False)         
+        self.toggle_econ_signals(False)      
         self.econ_val_changed()
 
     def econ_val_changed(self):
-        # Begin by setting the derived quantaties   
-        tot_eng = self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001   
-        self.econ_power_produced_lineEdit.blockSignals(True)
-        self.econ_power_produced_lineEdit.setText(f"{tot_eng:.2f}")
-        self.econ_power_produced_lineEdit.blockSignals(False)
+        # Block Signals
+        self.toggle_econ_signals(True)
 
-        self.econ_calc_engstor_lineEdit.blockSignals(True)
-        self.econ_calc_engstor_lineEdit.setText(f"{(float(self.econ_energy_storage_lineEdit.text())/100.)*1000*tot_eng:.2f}")
-        self.econ_calc_engstor_lineEdit.blockSignals(False)       
+        valid, errors = self.validate_econ()
+        if not valid:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText("\n\n".join(errors))
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+
+        # Begin by setting the derived quantaties   
+        tot_eng = self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001  
+        self.econ_power_produced_lineEdit.setText(f"{tot_eng:.2f}")
+        
+        self.econ_calc_engstor_lineEdit.setText(f"{(float(self.econ_energy_storage_lineEdit.text())/100.)*1000*tot_eng:.2f}")  
 
         cons = float(self.econ_agency_cons_lineEdit.text())
         tot_price = float(self.econ_agency_elec_cost_lineEdit.text())
@@ -919,37 +901,61 @@ class MainWindow(QMainWindow):
             try:
                 float(self.econ_ann_deg_lineEdit.text())
             except ValueError:
-                self.econ_ann_deg_lineEdit.blockSignals(True)
                 self.econ_ann_deg_lineEdit.setText("0.5")
-                self.econ_ann_deg_lineEdit.blockSignals(False)
         else:
             self.econ_ann_deg_lineEdit.setEnabled(False)
 
+        self.set_sliders()
+        self.toggle_econ_signals(False)
         self.build_econ_model()
 
-    def fix_capital_slider(self):
-        print()
-
     def contract_period_slider(self):
-        print()
+        self.toggle_econ_signals(True)
+        current_value = self.econ_cont_per_Slider.value()
+        self.econ_cont_per_lineEdit.setText(f"{current_value}")
+        self.toggle_econ_signals(False)
 
     def tax_rate_slider(self):
-        print()
+        self.toggle_econ_signals(True)
+        current_value = self.econ_tax_rate_Slider.value()
+        self.econ_tax_rate_lineEdit.setText(f"{current_value}")
+        self.toggle_econ_signals(False)
 
     def insurance_rate_slider(self):
-        print()
+        self.toggle_econ_signals(True)
+        current_value = float(self.econ_insur_rate_Slider.value())/10.
+        self.econ_insur_rate_lineEdit.setText(f"{current_value}")
+        self.toggle_econ_signals(False)
 
     def inflation_rate_slider(self):
-        print()
+        self.toggle_econ_signals(True)
+        current_value = float(self.econ_inflat_rate_Slider.value())/10.
+        self.econ_inflat_rate_lineEdit.setText(f"{current_value}")
+        self.toggle_econ_signals(False)
 
     def fed_tax_credit_slider(self):
-        print()
+        self.toggle_econ_signals(True)
+        current_value = self.econ_fed_tax_cred_Slider.value()
+        self.econ_fed_tax_cred_lineEdit.setText(f"{current_value}")
+        self.toggle_econ_signals(False)
 
     def tax_cred_period_slider(self):
-        print()
+        self.toggle_econ_signals(True)
+        current_value = self.econ_tax_cred_per_Slider.value()
+        self.econ_tax_cred_per_lineEdit.setText(f"{current_value}")
+        self.toggle_econ_signals(False)
 
     def price_escalat_slider(self):
-        print() 
+        self.toggle_econ_signals(True)
+        if self.gov_radioButton.isChecked():
+            cur_dict = self.model_assump[self.assump_from_econ_cfe()]['gov_rates']
+        else:
+            cur_dict = self.model_assump[self.assump_from_econ_cfe()]['third_party_rates']
+
+        esc_val = cur_dict['electric_cost_escalation_lb'] + self.econ_price_esc_Slider.value()*\
+            ((cur_dict['electric_cost_escalation_ub']-cur_dict['electric_cost_escalation_lb'])/50)
+        self.econ_price_esc_lineEdit.setText(f"{esc_val}")  
+        self.toggle_econ_signals(False) 
 
     # Functions not tied to any button
     def build_econ_model(self):
@@ -1198,6 +1204,39 @@ class MainWindow(QMainWindow):
         errors = ["Please address the following issues to continue:"]
         valid = True
 
+        # Check the path
+        # The only way the user could mess with this is to set the path then delete it before hitting proceed
+        if not os.path.exists(str(self.frpp_path.text())):
+            valid = False
+            errors.append(f"The path specified {self.frpp_path.text()}\nDoes not exist. Please select a valid FRPP dataset to continue.")
+
+        # Check that an agency has been selected
+        if self.agency_comboBox.currentIndex() == 0:
+            valid = False
+            errors.append("You must select an agency to continue")
+
+        return valid, errors
+
+    def validate_econ(self)->bool | list:
+        """
+        Goes through all of the econ tab and makes sure that all
+        entries are valid.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        bool
+            valid
+        list
+            errors
+        """
+
+        errors = ["Please address the following issues to continue:"]
+        valid = True
+
         # Reset all page options to valid background
         self.frpp_path.setStyleSheet(DEFAULT_WHITE)
         self.agency_comboBox.setStyleSheet(DEFAULT_WHITE)
@@ -1216,7 +1255,7 @@ class MainWindow(QMainWindow):
             errors.append("You must select an agency to continue")
 
         return valid, errors
-    
+
     def geothermal_enthalpy(self, geo_class:np.array)->np.array:
         '''
         Takes in an array of geothermal classes and
@@ -1257,9 +1296,11 @@ class MainWindow(QMainWindow):
         out_temp[:] = self.model_assump['geo_therm']['system']['turb_outlet_temp']
         return delta_h, in_temp, out_temp
         
-    def setup_econ_page(self, tot_eng:float, tot_price:float)->None:        
-        # Establish CFE dropdown menu        
-        self.econ_cfe_comboBox.blockSignals(True)
+    def setup_econ_page(self, tot_eng:float, tot_price:float)->None:  
+        # Block Signals
+        self.toggle_econ_signals(True)
+             
+        # Establish CFE dropdown menu   
         for key, value in {'Wind Power (kW)': 'Wind', 'Rooftop Solar Power': "Rooftop Solar", 
                     'Ground Solar Power': "Ground-Mounted Solar",
                     'Fuel Cell (kW)': "Hydrogen Fuel Cells", 'Geothermal Power (kW)': "Geothermal", 
@@ -1267,114 +1308,51 @@ class MainWindow(QMainWindow):
             if self.frpp_df[key].sum() > 0:
                 self.econ_cfe_comboBox.addItem(value)        
         self.econ_cfe_comboBox.setCurrentIndex(0)
-        self.econ_cfe_comboBox.blockSignals(False)
                 
         cur_dict = self.model_assump[self.assump_from_econ_cfe()]['gov_rates']
 
         # set ownership to government
-        self.gov_radioButton.blockSignals(True)
         self.gov_radioButton.setChecked(True)
-        self.gov_radioButton.blockSignals(False)
 
         # set input values
         # Top input box
-        self.econ_power_produced_lineEdit.blockSignals(True)
         self.econ_power_produced_lineEdit.setText(f"{self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001:.2f}")
-        self.econ_power_produced_lineEdit.blockSignals(False)
-
-        self.econ_energy_storage_lineEdit.blockSignals(True)
         self.econ_energy_storage_lineEdit.setText("0")
-        self.econ_energy_storage_lineEdit.blockSignals(False)
-
-        self.econ_bat_rep_lineEdit.blockSignals(True)
         self.econ_bat_rep_lineEdit.setText("5")
-        self.econ_bat_rep_lineEdit.blockSignals(False)
-
         self.econ_calc_engstor_lineEdit.setText("0.0")
-
-        self.econ_agency_cons_lineEdit.blockSignals(True)
         self.econ_agency_cons_lineEdit.setText(str(tot_eng))
-        self.econ_agency_cons_lineEdit.blockSignals(False)
-
-        self.econ_agency_elec_cost_lineEdit.blockSignals(True)
         self.econ_agency_elec_cost_lineEdit.setText(str(tot_price))
-        self.econ_agency_elec_cost_lineEdit.blockSignals(False)
-
         self.econ_unit_cost_lineEdit.setText(f"{tot_price/(tot_eng*1000):.6f}")
 
         # Bottom input box
-        self.econ_interest_rate_lineEdit.blockSignals(True)
         self.econ_interest_rate_lineEdit.setText("2.0")
-        self.econ_interest_rate_lineEdit.blockSignals(False)
-
-        self.econ_proj_life_lineEdit.blockSignals(True)
         self.econ_proj_life_lineEdit.setText(str(cur_dict['project_life']))
-        self.econ_proj_life_lineEdit.blockSignals(False)
-
         if "Solar" in self.econ_cfe_comboBox.currentText() or "Hydrogen" in self.econ_cfe_comboBox.currentText():
-            self.econ_ann_deg_lineEdit.blockSignals(True)
             self.econ_ann_deg_lineEdit.setText("0.5")
-            self.econ_ann_deg_lineEdit.blockSignals(False)
         else:
             self.econ_ann_deg_lineEdit.setEnabled(False)
-
-        self.econ_rec_lineEdit.blockSignals(True)
-        self.econ_rec_lineEdit.setText("19")
-        self.econ_rec_lineEdit.blockSignals(False)
-        
-        self.econ_cont_per_lineEdit.blockSignals(True)
+        self.econ_rec_lineEdit.setText("19")        
         self.econ_cont_per_lineEdit.setText("2")
-        self.econ_cont_per_lineEdit.blockSignals(False)
-        self.econ_cont_per_Slider.blockSignals(True)
         self.econ_cont_per_Slider.setValue(2)
-        self.econ_cont_per_Slider.blockSignals(False)
-
-        self.econ_tax_rate_lineEdit.blockSignals(True)
         self.econ_tax_rate_lineEdit.setText(str(cur_dict['taxation']))
-        self.econ_tax_rate_lineEdit.blockSignals(False)
-        self.econ_tax_rate_Slider.blockSignals(True)
         self.econ_tax_rate_Slider.setValue(int(cur_dict['taxation']))
-        self.econ_tax_rate_Slider.blockSignals(False)
-
-        self.econ_insur_rate_lineEdit.blockSignals(True)
         self.econ_insur_rate_lineEdit.setText("0.5")
-        self.econ_insur_rate_lineEdit.blockSignals(False)
-        self.econ_insur_rate_Slider.blockSignals(True)
         self.econ_insur_rate_Slider.setValue(5) # increments of 0.1
-        self.econ_insur_rate_Slider.blockSignals(False)
-
-        self.econ_inflat_rate_lineEdit.blockSignals(True)
         self.econ_inflat_rate_lineEdit.setText(str(cur_dict['inflation_rate']))
-        self.econ_inflat_rate_lineEdit.blockSignals(False)
-        self.econ_inflat_rate_Slider.blockSignals(True)
         self.econ_inflat_rate_Slider.setValue(max(1,int(cur_dict['inflation_rate']*10))) # increments of 0.1
-        self.econ_inflat_rate_Slider.blockSignals(False)
-
-        self.econ_fed_tax_cred_lineEdit.blockSignals(True)
         self.econ_fed_tax_cred_lineEdit.setText("0.0")
         self.econ_fed_tax_cred_lineEdit.setEnabled(False)
-        self.econ_fed_tax_cred_lineEdit.blockSignals(False)
-        self.econ_fed_tax_cred_Slider.blockSignals(True)
         self.econ_fed_tax_cred_Slider.setValue(0) 
         self.econ_fed_tax_cred_Slider.setEnabled(False)
-        self.econ_fed_tax_cred_Slider.blockSignals(False)
-
-        self.econ_tax_cred_per_lineEdit.blockSignals(True)
         self.econ_tax_cred_per_lineEdit.setText("0.0")
         self.econ_tax_cred_per_lineEdit.setEnabled(False)
-        self.econ_tax_cred_per_lineEdit.blockSignals(False)
-        self.econ_tax_cred_per_Slider.blockSignals(True)
         self.econ_tax_cred_per_Slider.setValue(1) 
         self.econ_tax_cred_per_Slider.setEnabled(False)
-        self.econ_tax_cred_per_Slider.blockSignals(False)
-
-        esc_val = 0.5 * cur_dict['electric_cost_escalation_lb'] + cur_dict['electric_cost_escalation_lb']
-        self.econ_price_esc_lineEdit.blockSignals(True)
+        esc_val = 0.5 * (cur_dict['electric_cost_escalation_lb'] + cur_dict['electric_cost_escalation_ub'])
         self.econ_price_esc_lineEdit.setText(str(esc_val))
-        self.econ_price_esc_lineEdit.blockSignals(False)
-        self.econ_price_esc_Slider.blockSignals(True)
         self.econ_price_esc_Slider.setValue(24) 
-        self.econ_price_esc_Slider.blockSignals(False)
+
+        self.toggle_econ_signals(False)
    
     def df_header_from_econ_cfe(self, req="Power"):        
         cfe_text = self.econ_cfe_comboBox.currentText()
@@ -1419,6 +1397,68 @@ class MainWindow(QMainWindow):
             return 'hydrogen'
         elif cfe_text == "Concentrating Solar":
             return 'conc_solar'
+
+    def toggle_econ_signals(self, toggle:bool):
+        self.econ_cfe_comboBox.blockSignals(toggle)
+        self.gov_radioButton.blockSignals(toggle)
+        self.third_party_radioButton.blockSignals(toggle)
+        self.econ_energy_storage_lineEdit.blockSignals(toggle)
+        self.econ_bat_rep_lineEdit.blockSignals(toggle)
+        self.econ_agency_cons_lineEdit.blockSignals(toggle)
+        self.econ_agency_elec_cost_lineEdit.blockSignals(toggle)
+        self.econ_interest_rate_lineEdit.blockSignals(toggle)
+        self.econ_proj_life_lineEdit.blockSignals(toggle)
+        self.econ_marcs_comboBox.blockSignals(toggle)
+        self.econ_ann_deg_lineEdit.blockSignals(toggle)
+        self.econ_rec_lineEdit.blockSignals(toggle)
+        self.econ_cont_per_lineEdit.blockSignals(toggle)
+        self.econ_tax_rate_lineEdit.blockSignals(toggle)
+        self.econ_insur_rate_lineEdit.blockSignals(toggle)
+        self.econ_inflat_rate_lineEdit.blockSignals(toggle)
+        self.econ_fed_tax_cred_lineEdit.blockSignals(toggle)
+        self.econ_tax_cred_per_lineEdit.blockSignals(toggle)
+        self.econ_price_esc_lineEdit.blockSignals(toggle)
+        self.econ_cont_per_Slider.blockSignals(toggle)
+        self.econ_tax_rate_Slider.blockSignals(toggle)
+        self.econ_insur_rate_Slider.blockSignals(toggle)
+        self.econ_inflat_rate_Slider.blockSignals(toggle)
+        self.econ_fed_tax_cred_Slider.blockSignals(toggle)
+        self.econ_tax_cred_per_Slider.blockSignals(toggle)
+        self.econ_price_esc_Slider.blockSignals(toggle)
+
+    def set_sliders(self):
+        self.toggle_econ_signals(True)
+
+        cont_per = int(float(self.econ_cont_per_lineEdit.text()))
+        self.econ_cont_per_Slider.setValue(cont_per)
+
+        tax_rate = int(float(self.econ_tax_rate_lineEdit.text()))
+        self.econ_tax_rate_Slider.setValue(tax_rate)
+
+        insur_rate = int(10*float(self.econ_insur_rate_lineEdit.text()))
+        self.econ_insur_rate_Slider.setValue(insur_rate) # increments of 0.1
+
+        inflat_rate = int(10*float(self.econ_inflat_rate_lineEdit.text()))
+        self.econ_inflat_rate_Slider.setValue(max(1,inflat_rate)) # increments of 0.1
+
+        if self.econ_fed_tax_cred_lineEdit.isEnabled():
+            fed_tax_cred = int(float(self.econ_fed_tax_cred_lineEdit.text()))        
+            self.econ_fed_tax_cred_Slider.setValue(fed_tax_cred) 
+
+        if self.econ_tax_cred_per_lineEdit.isEnabled():
+            tax_cred_per = int(float(self.econ_tax_cred_per_lineEdit.text()))
+            self.econ_tax_cred_per_Slider.setValue(max(1,tax_cred_per)) 
+              
+        if self.gov_radioButton.isChecked():
+            cur_dict = self.model_assump[self.assump_from_econ_cfe()]['gov_rates']
+        else:
+            cur_dict = self.model_assump[self.assump_from_econ_cfe()]['third_party_rates']
+
+        esc_val = int((float(self.econ_price_esc_lineEdit.text()) - cur_dict['electric_cost_escalation_lb'])/
+                      ((cur_dict['electric_cost_escalation_ub']-cur_dict['electric_cost_escalation_lb'])/50))         
+        self.econ_price_esc_Slider.setValue(esc_val) 
+
+        self.toggle_econ_signals(False)
 
 
 
