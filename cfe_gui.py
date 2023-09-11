@@ -122,6 +122,8 @@ class MainWindow(QMainWindow):
         self.frpp_df = None
         self.econ_df = pd.DataFrame()
         self.cfe_use_df = pd.DataFrame()
+        self.agency_energy_data = None
+        self.agency_price_data = None
 
         # Set defaults
         self.stackedWidget.setCurrentIndex(0)
@@ -453,7 +455,7 @@ class MainWindow(QMainWindow):
                 msg.exec()
                 return
             else:
-                agency_energy_data = agency_energy_data.loc[(agency_energy_data['Agency'] == str(self.agency_comboBox.currentText()))]
+                self.agency_energy_data = agency_energy_data.loc[(agency_energy_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
         if not os.path.exists(os.path.join(DATA_PATH, "Agency_Energy_Price_Data.csv")):
             msg = QMessageBox(self)
@@ -465,7 +467,7 @@ class MainWindow(QMainWindow):
             return
         else:
             agency_price_data = pd.read_csv(os.path.join(DATA_PATH, "Agency_Energy_Price_Data.csv"), header=0)
-            if str(self.agency_comboBox.currentText()) not in agency_energy_data['Agency'].values:
+            if str(self.agency_comboBox.currentText()) not in agency_price_data['Agency'].values:
                 msg = QMessageBox(self)
                 msg.setIcon(QMessageBox.Icon.Warning)
                 msg.setText(f"The data for the requested agency: {str(self.agency_comboBox.currentText())}\nIs not present in the price data set\n\nThe calculation can't continue")
@@ -474,7 +476,7 @@ class MainWindow(QMainWindow):
                 msg.exec()
                 return
             else:
-                agency_price_data = agency_price_data.loc[(agency_price_data['Agency'] == str(self.agency_comboBox.currentText()))]
+                self.agency_price_data = agency_price_data.loc[(agency_price_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
         # These variables are just for the report at the end
         n_solar_roof, n_solar_roof_built = 0, 0
@@ -685,7 +687,7 @@ class MainWindow(QMainWindow):
         cur_year = datetime.now().year
         year_ind = list(range(cur_year,2036))
         
-        pp = -(1000*agency_energy_data['Electricity (MWh)'].values[0] * (float(self.energy_proj_lineEdit.text())+100)) /\
+        pp = -(1000*self.agency_energy_data['Electricity (MWh)'].values[0] * (float(self.energy_proj_lineEdit.text())+100)) /\
             (float(self.oper_days_lineEdit.text())*(float(self.CB_oper_lineEdit.text())*\
             (float(self.cur_cfe_lineEdit.text())-100) - float(self.cur_cfe_lineEdit.text()) * \
             float(self.ren_oper_lineEdit.text())))
@@ -718,7 +720,7 @@ class MainWindow(QMainWindow):
             self.cfe_use_df['Carbon-Based Energy in year N (kWh)']) * 0.001
         dmy = []
         for year in year_ind:
-            dmy.append(agency_energy_data['Electricity (MWh)'].values[0] * \
+            dmy.append(self.agency_energy_data['Electricity (MWh)'].values[0] * \
                 (1. + float(self.energy_proj_lineEdit.text())/100.) * \
                 (1 + float(self.AEG_lineEdit.text())/100.)**(year-2023))
         self.cfe_use_df['Projected Total Energy in year N (MWh)'] = dmy
@@ -734,7 +736,7 @@ class MainWindow(QMainWindow):
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:24pt; font-weight:700; text-decoration: underline; color:#000086;\">CFE Potential for {str(self.agency_comboBox.currentText())}</span></p>\n"
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:12pt; color:#000086;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent"
-                                    f":0; text-indent:0px;\"><span style=\" font-size:14pt;\">Total Energy Required: 		{agency_energy_data['Electricity (MWh)'].values[0]:,.0f} MWh</span></p>\n"
+                                    f":0; text-indent:0px;\"><span style=\" font-size:14pt;\">Total Energy Required: 		{self.agency_energy_data['Electricity (MWh)'].values[0]:,.0f} MWh</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt;\">Total Estimated Production Capacity:	{self.frpp_df['Total Energy (kWh)'].sum()*0.001:,.0f} MWh</span></p>\n"
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Wind</span></p>\n"
@@ -744,7 +746,7 @@ class MainWindow(QMainWindow):
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_wind_built:>22}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Wind Power (kW)'].sum()*0.001:>33,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Wind Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Wind Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>10.1f}%</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Wind Power (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:>10.1f}%</span></p>\n"
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px;  font-size:14pt;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Rooftop Solar PV</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
@@ -753,7 +755,7 @@ class MainWindow(QMainWindow):
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_solar_roof_built:>26}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Rooftop Solar Power'].sum()*0.001:>37,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n"
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Ground Mounted Solar PV</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
@@ -762,7 +764,7 @@ class MainWindow(QMainWindow):
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built{n_solar_grnd_built:>27}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Ground Solar Power'].sum()*0.001:>36,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n" 
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n" 
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Hydrogen Fuel Cell</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
@@ -771,7 +773,7 @@ class MainWindow(QMainWindow):
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_fuelcell_built:>27}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Fuel Cell (kW)'].sum()*0.001:>38,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:>17.1f}%</span></p>\n"
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Geothermal Power</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
@@ -780,7 +782,7 @@ class MainWindow(QMainWindow):
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_geot_built:>24}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Geothermal Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Geothermal Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Geothermal Power (kWh/yr)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>13.1f}%</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Geothermal Power (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:>13.1f}%</span></p>\n"
             "<p style=\"-qt-paragraph-type:em"
                                     "pty;  -qt-block-indent:0; text-indent:0px; font-size:14pt; color:#000000;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Concentrating Solar</span></p>\n"
@@ -790,7 +792,7 @@ class MainWindow(QMainWindow):
             "<p "
                                     f"style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Concentrating Solar Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Concentrating Solar Power (kWh)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Concentrating Solar Power (kWh)'].sum()*0.001)/agency_energy_data['Electricity (MWh)'].values[0]*100:>13.1f}%</span></p></body></html>", None))
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand:{(self.frpp_df['Annual Concentrating Solar Power (kWh)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:>13.1f}%</span></p></body></html>", None))
         
         bar_data = {"Carbon-Based Energy": self.cfe_use_df['Carbon-Based Energy in year N (kWh)'].values,
                     "Renewable Energy": self.cfe_use_df['Renewable Energy in year N (kWh)'].values}
@@ -809,8 +811,7 @@ class MainWindow(QMainWindow):
         self.cfe_bar_canvas.axes.set_xticks(x + width, year_ind)
         self.cfe_bar_canvas.axes.legend(loc='upper right', ncols=2)
 
-        self.setup_econ_page(agency_energy_data['Electricity (MWh)'].values[0],
-                              agency_price_data['Electricity'].values[0])
+        self.setup_econ_page()
         self.build_econ_model()
 
         self.stackedWidget.setCurrentIndex(2)
@@ -875,16 +876,7 @@ class MainWindow(QMainWindow):
 
     def econ_val_changed(self):
         # Block Signals
-        self.toggle_econ_signals(True)
-
-        valid, errors = self.validate_econ()
-        if not valid:
-            msg = QMessageBox(self)
-            msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setText("\n\n".join(errors))
-            msg.setWindowTitle("Warning")
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+        self.toggle_econ_signals(True)        
 
         # Begin by setting the derived quantaties   
         tot_eng = self.frpp_df[self.df_header_from_econ_cfe()].sum()*0.001  
@@ -904,6 +896,15 @@ class MainWindow(QMainWindow):
                 self.econ_ann_deg_lineEdit.setText("0.5")
         else:
             self.econ_ann_deg_lineEdit.setEnabled(False)
+
+        valid, errors = self.validate_econ()
+        if not valid:
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText("\n\n".join(errors))
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
 
         self.set_sliders()
         self.toggle_econ_signals(False)
@@ -1204,18 +1205,24 @@ class MainWindow(QMainWindow):
         errors = ["Please address the following issues to continue:"]
         valid = True
 
+        # Reset all page options to valid background
+        self.frpp_path.setStyleSheet(DEFAULT_WHITE)
+        self.agency_comboBox.setStyleSheet(DEFAULT_WHITE)
+
         # Check the path
         # The only way the user could mess with this is to set the path then delete it before hitting proceed
         if not os.path.exists(str(self.frpp_path.text())):
+            self.frpp_path.setStyleSheet(DEFAULT_ERROR)
             valid = False
             errors.append(f"The path specified {self.frpp_path.text()}\nDoes not exist. Please select a valid FRPP dataset to continue.")
 
         # Check that an agency has been selected
         if self.agency_comboBox.currentIndex() == 0:
+            self.agency_comboBox.setStyleSheet(DEFAULT_ERROR)
             valid = False
             errors.append("You must select an agency to continue")
 
-        return valid, errors
+        return valid, errors        
 
     def validate_econ(self)->bool | list:
         """
@@ -1234,25 +1241,235 @@ class MainWindow(QMainWindow):
             errors
         """
 
-        errors = ["Please address the following issues to continue:"]
+        errors = ["There was an issue with the requested input:"]
         valid = True
 
-        # Reset all page options to valid background
-        self.frpp_path.setStyleSheet(DEFAULT_WHITE)
-        self.agency_comboBox.setStyleSheet(DEFAULT_WHITE)
+        if self.gov_radioButton.isChecked():
+            cur_dict = self.model_assump[self.assump_from_econ_cfe()]['gov_rates']
+            int_rate = 2
+        else:
+            cur_dict = self.model_assump[self.assump_from_econ_cfe()]['third_party_rates']
+            int_rate = 12
 
-        # Check the path
-        # The only way the user could mess with this is to set the path then delete it before hitting proceed
-        if not os.path.exists(str(self.frpp_path.text())):
-            self.frpp_path.setStyleSheet(DEFAULT_ERROR)
+        # Check the Energy Storage Percentage 
+        try:
+            val = float(self.econ_energy_storage_lineEdit.text())   
+            if val < 0:
+                valid = False
+                errors.append(f"The requested percent energy storage {val} is outside the acceptable bounds of 0 - 100%.\nThe value has been changed to 0")
+                self.econ_energy_storage_lineEdit.setText("0")
+            elif val > 100:
+                valid = False
+                errors.append(f"The requested percent energy storage {val} is outside the acceptable bounds of 0 - 100%.\nThe value has been changed to 100")
+                self.econ_energy_storage_lineEdit.setText("100")
+        except ValueError:            
             valid = False
-            errors.append(f"The path specified {self.frpp_path.text()}\nDoes not exist. Please select a valid FRPP dataset to continue.")
+            errors.append(f"{self.econ_energy_storage_lineEdit.text()} was not a valid choice for energy storage.\nThe value has been changed to 0")
+            self.econ_energy_storage_lineEdit.setText("0")
 
-        # Check that an agency has been selected
-        if self.agency_comboBox.currentIndex() == 0:
-            self.agency_comboBox.setStyleSheet(DEFAULT_ERROR)
+        # Check the Battery Replacement
+        try:
+            val = float(self.econ_bat_rep_lineEdit.text())   
+            if val < 1:
+                valid = False
+                errors.append(f"The requested battery replacement time: {val}, is outside the acceptable bounds.\nThe value has been changed to 1")
+                self.econ_bat_rep_lineEdit.setText("1")
+        except ValueError:            
             valid = False
-            errors.append("You must select an agency to continue")
+            errors.append(f"{self.econ_bat_rep_lineEdit.text()} was not a valid choice for battery replacement.\nThe value has been changed to 5")
+            self.econ_bat_rep_lineEdit.setText("5")
+
+        # Check the Agency Consumption
+        try:
+            val = float(self.econ_agency_cons_lineEdit.text())   
+            if val < 1:
+                valid = False
+                errors.append(f"The requested annual agency energy consumption: {val}, must be greater than 0.\nThe value has been changed to the default 2022 value")
+                self.econ_agency_cons_lineEdit.setText(f"{self.agency_energy_data['Electricity (MWh)'].values[0]}")
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_agency_cons_lineEdit.text()} was not a valid choice for agency consumption.\nThe value has been changed to the default 2022 value")
+            self.econ_agency_cons_lineEdit.setText(f"{self.agency_energy_data['Electricity (MWh)'].values[0]}")
+
+        # Check the Agency Electricity Costs
+        try:
+            val = float(self.econ_agency_elec_cost_lineEdit.text())   
+            if val < 1:
+                valid = False
+                errors.append(f"The requested annual agency energy consumption: {val}, must be greater than 0.\nThe value has been changed to the default 2022 value")
+                self.econ_agency_elec_cost_lineEdit.setText(f"{self.agency_price_data['Electricity'].values[0]}")
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_agency_elec_cost_lineEdit.text()} was not a valid choice for agency consumption.\nThe value has been changed to the default 2022 value")
+            self.econ_agency_elec_cost_lineEdit.setText(f"{self.agency_price_data['Electricity'].values[0]}")
+
+        # Check the Interest Rate
+        try:
+            val = float(self.econ_interest_rate_lineEdit.text())               
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_interest_rate_lineEdit.text()} was not a valid choice for interest rate.\nThe value has been changed to {int_rate}")
+            self.econ_interest_rate_lineEdit.setText(f"{int_rate}")
+
+        # Check the project life
+        try:
+            val = float(self.econ_proj_life_lineEdit.text())   
+            if val < 1:
+                valid = False
+                errors.append(f"The requested project life: {val}, is outside the acceptable bounds.\nThe value has been changed to {str(cur_dict['project_life'])}")
+                self.econ_proj_life_lineEdit.setText({str(cur_dict['project_life'])})
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_proj_life_lineEdit.text()} was not a valid choice for project life.\nThe value has been changed to {str(cur_dict['project_life'])}")
+            self.econ_proj_life_lineEdit.setText(str(cur_dict['project_life'])) 
+
+        # Check annual degradation
+        if "Solar" in self.econ_cfe_comboBox.currentText() or "Hydrogen" in self.econ_cfe_comboBox.currentText():
+            try:
+                val = float(self.econ_ann_deg_lineEdit.text())   
+                if val < 0:
+                    valid = False
+                    errors.append(f"The requested annual degradation: {val}, is outside the acceptable bounds.\nThe value has been changed to 0.5")
+                    self.econ_ann_deg_lineEdit.setText("0.5")
+            except ValueError:            
+                valid = False
+                errors.append(f"{self.econ_ann_deg_lineEdit.text()} was not a valid choice for annual degradation.\nThe value has been changed to 0.5")
+                self.econ_ann_deg_lineEdit.setText("0.5") 
+
+        # Check renewable energy certification
+        try:
+            val = float(self.econ_rec_lineEdit.text())   
+            if val < 0:
+                valid = False
+                errors.append(f"The requested renewable energy certification: {val}, is outside the acceptable bounds.\nThe value has been changed to 0")
+                self.econ_rec_lineEdit.setText("0")
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_rec_lineEdit.text()} was not a valid choice for renewable energy certification.\nThe value has been changed to 19")
+            self.econ_rec_lineEdit.setText(f"{19}") 
+
+        # Check contract period
+        current_value = self.econ_cont_per_Slider.value()
+        try:
+            val = float(self.econ_cont_per_lineEdit.text())   
+            if val < 1:
+                valid = False
+                errors.append(f"The requested contract period: {val}, is outside the acceptable bounds of 1 - 30.\nThe value has been changed to {current_value}")
+                self.econ_cont_per_lineEdit.setText(f"{current_value}")
+            elif val > 30:
+                valid = False
+                errors.append(f"The requested contract period: {val}, is outside the acceptable bounds of 1 - 30.\nThe value has been changed to {current_value}")
+                self.econ_cont_per_lineEdit.setText(f"{current_value}")
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_cont_per_lineEdit.text()} was not a valid choice for contract period.\nThe value has been changed to {current_value}")
+            self.econ_cont_per_lineEdit.setText(f"{current_value}") 
+
+        # Check tax rate
+        current_value = self.econ_tax_rate_Slider.value()
+        try:
+            val = float(self.econ_tax_rate_lineEdit.text())   
+            if val < 0:
+                valid = False
+                errors.append(f"The requested tax rate: {val}, is outside the acceptable bounds of 0 - 50%.\nThe value has been changed to {current_value}")
+                self.econ_tax_rate_lineEdit.setText(f"{current_value}")
+            elif val > 50:
+                valid = False
+                errors.append(f"The requested tax rate: {val}, is outside the acceptable bounds of 0 - 50%.\nThe value has been changed to {current_value}")
+                self.econ_tax_rate_lineEdit.setText(f"{current_value}")
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_tax_rate_lineEdit.text()} was not a valid choice for tax rate.\nThe value has been changed to {current_value}")
+            self.econ_tax_rate_lineEdit.setText(f"{current_value}") 
+
+        # Check insurance rate
+        current_value = self.econ_insur_rate_Slider.value()/10.
+        try:
+            val = float(self.econ_insur_rate_lineEdit.text())   
+            if val < 0.1:
+                valid = False
+                errors.append(f"The requested insurance rate: {val}, is outside the acceptable bounds of 0.1 - 5.0%.\nThe value has been changed to {current_value}")
+                self.econ_insur_rate_lineEdit.setText(f"{current_value}")
+            elif val > 5:
+                valid = False
+                errors.append(f"The requested insurance rate: {val}, is outside the acceptable bounds of 0.1 - 5.0%.\nThe value has been changed to {current_value}")
+                self.econ_insur_rate_lineEdit.setText(f"{current_value}")
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_insur_rate_lineEdit.text()} was not a valid choice for insurance rate.\nThe value has been changed to {current_value}")
+            self.econ_insur_rate_lineEdit.setText(f"{current_value}") 
+
+        if self.third_party_radioButton.isChecked():
+            # Check inflation rate
+            current_value = self.econ_inflat_rate_Slider.value()/10
+            try:
+                val = float(self.econ_inflat_rate_lineEdit.text())   
+                if val < 0.1:
+                    valid = False
+                    errors.append(f"The requested inflation rate: {val}, is outside the acceptable bounds of 0.1 - 10.0%.\nThe value has been changed to {current_value}")
+                    self.econ_inflat_rate_lineEdit.setText(f"{current_value}")
+                elif val > 10.0:
+                    valid = False
+                    errors.append(f"The requested inflation rate: {val}, is outside the acceptable bounds of 0.1 - 10.0%.\nThe value has been changed to {current_value}")
+                    self.econ_inflat_rate_lineEdit.setText(f"{current_value}")
+            except ValueError:            
+                valid = False
+                errors.append(f"{self.econ_inflat_rate_lineEdit.text()} was not a valid choice for inflation rate.\nThe value has been changed to {current_value}")
+                self.econ_inflat_rate_lineEdit.setText(f"{current_value}") 
+            
+            # Check federal tax credit        
+            current_value = self.econ_fed_tax_cred_Slider.value()
+            try:
+                val = float(self.econ_fed_tax_cred_lineEdit.text())   
+                if val < 0:
+                    valid = False
+                    errors.append(f"The requested federal tax credit: {val}, is outside the acceptable bounds of 0 - 50%.\nThe value has been changed to {current_value}")
+                    self.econ_fed_tax_cred_lineEdit.setText(f"{current_value}")
+                elif val > 50.0:
+                    valid = False
+                    errors.append(f"The requested federal tax credit: {val}, is outside the acceptable bounds of 0 - 50%.\nThe value has been changed to {current_value}")
+                    self.econ_fed_tax_cred_lineEdit.setText(f"{current_value}")
+            except ValueError:            
+                valid = False
+                errors.append(f"{self.econ_fed_tax_cred_lineEdit.text()} was not a valid choice for federal tax credit.\nThe value has been changed to {current_value}")
+                self.econ_fed_tax_cred_lineEdit.setText(f"{current_value}") 
+
+            # Check federal tax credit period        
+            current_value = self.econ_tax_cred_per_Slider.value()
+            try:
+                val = float(self.econ_tax_cred_per_lineEdit.text())   
+                if val < 1:
+                    valid = False
+                    errors.append(f"The requested federal tax credit period: {val}, is outside the acceptable bounds of 1 - 10.\nThe value has been changed to {current_value}")
+                    self.econ_tax_cred_per_lineEdit.setText(f"{current_value}")
+                elif val > 10:
+                    valid = False
+                    errors.append(f"The requested federal tax credit period: {val}, is outside the acceptable bounds of 1 - 10.\nThe value has been changed to {current_value}")
+                    self.econ_tax_cred_per_lineEdit.setText(f"{current_value}")
+            except ValueError:            
+                valid = False
+                errors.append(f"{self.econ_tax_cred_per_lineEdit.text()} was not a valid choice for federal tax creditperiod.\nThe value has been changed to {current_value}")
+                self.econ_tax_cred_per_lineEdit.setText(f"{current_value}") 
+            
+        # Check price escalation
+        current_value = self.econ_price_esc_Slider.value()
+        lb = cur_dict['electric_cost_escalation_lb']
+        ub = cur_dict['electric_cost_escalation_ub']
+        esc_val = lb + current_value*((ub-lb)/50)
+        try:
+            val = float(self.econ_price_esc_lineEdit.text())   
+            if val < lb:
+                valid = False
+                errors.append(f"The requested price escalation: {val}, is outside the acceptable bounds of {lb} - {ub}%/year.\nThe value has been changed to {esc_val}")
+                self.econ_price_esc_lineEdit.setText(f"{esc_val}")
+            elif val > ub:
+                valid = False
+                errors.append(f"The requested price escalation: {val}, is outside the acceptable bounds of {lb} - {ub}%/year.\nThe value has been changed to {esc_val}")
+                self.econ_price_esc_lineEdit.setText(f"{esc_val}")
+        except ValueError:            
+            valid = False
+            errors.append(f"{self.econ_price_esc_lineEdit.text()} was not a valid choice for price escalation.\nThe value has been changed to {esc_val}")
+            self.econ_price_esc_lineEdit.setText(f"{esc_val}") 
 
         return valid, errors
 
@@ -1296,10 +1513,12 @@ class MainWindow(QMainWindow):
         out_temp[:] = self.model_assump['geo_therm']['system']['turb_outlet_temp']
         return delta_h, in_temp, out_temp
         
-    def setup_econ_page(self, tot_eng:float, tot_price:float)->None:  
+    def setup_econ_page(self)->None:  
         # Block Signals
         self.toggle_econ_signals(True)
              
+        tot_eng = self.agency_energy_data['Electricity (MWh)'].values[0]                             
+        tot_price = self.agency_price_data['Electricity'].values[0]
         # Establish CFE dropdown menu   
         for key, value in {'Wind Power (kW)': 'Wind', 'Rooftop Solar Power': "Rooftop Solar", 
                     'Ground Solar Power': "Ground-Mounted Solar",
