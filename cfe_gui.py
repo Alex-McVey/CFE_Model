@@ -37,13 +37,6 @@ class MplCanvas(FigureCanvasQTAgg):
         super(MplCanvas, self).__init__(self.fig)    
 
 
-# class dynamic_canvas(FigureCanvasQTAgg):
-
-#     def __init__(self, parent=None, width=5, height=4):
-#         self.dyn_canvas = FigureCanvas(Figure(figsize=(width, height)))
-#         self.dyn_ax = self.dyn_canvas.figure.subplots()
-
-
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super(MainWindow, self).__init__()
@@ -76,6 +69,9 @@ class MainWindow(QMainWindow):
         self.econ_NPV_layout.addWidget(self.econ_canvas)
         
         # Establish function connections
+        ''' Menu - File '''
+        self.actionNew.triggered.connect(self.reset)
+        self.actionExport_Results.triggered.connect(self.export)
         ''' Landing Page '''
         self.frpp_SetNewPath_pushButton.pressed.connect(self.set_newFRPP_path)
         self.load_frpp_pushButton.pressed.connect(self.process_FRPP)
@@ -124,11 +120,12 @@ class MainWindow(QMainWindow):
         self.cfe_use_df = pd.DataFrame()
         self.agency_energy_data = None
         self.agency_price_data = None
+        self.output_folder = DATA_PATH
 
         # Set defaults
+        self.actionExport_Results.setEnabled(False)
         self.stackedWidget.setCurrentIndex(0)
         self.tabWidget.setCurrentIndex(0)
-
 
     def set_newFRPP_path(self):
         """
@@ -742,7 +739,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Wind</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_wind:>12}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_wind:>13}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_wind_built:>22}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Wind Power (kW)'].sum()*0.001:>33,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Wind Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
@@ -751,7 +748,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Rooftop Solar PV</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_solar_roof:>15}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_solar_roof:>16}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_solar_roof_built:>26}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Rooftop Solar Power'].sum()*0.001:>37,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
@@ -760,7 +757,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Ground Mounted Solar PV</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_solar_grnd:>16}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_solar_grnd:>17}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built{n_solar_grnd_built:>27}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Ground Solar Power'].sum()*0.001:>36,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001:>17,.0f} MWh</span></p>\n"
@@ -769,7 +766,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Hydrogen Fuel Cell</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_fuelcell:>17}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_fuelcell:>18}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_fuelcell_built:>27}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Fuel Cell (kW)'].sum()*0.001:>38,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
@@ -778,7 +775,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Geothermal Power</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
             "<p style=\"  -qt-block-i"
-                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_geot:>14}</span></p>\n"
+                                    f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_geot:>15}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_geot_built:>24}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Geothermal Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation:{self.frpp_df['Annual Geothermal Power (kWh/yr)'].sum()*0.001:>19,.0f} MWh</span></p>\n"
@@ -787,7 +784,7 @@ class MainWindow(QMainWindow):
                                     "pty;  -qt-block-indent:0; text-indent:0px; font-size:14pt; color:#000000;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Concentrating Solar</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_conc_sol:>14}</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available:{n_conc_sol:>15}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built:{n_conc_sol_built:>25}</span></p>\n"
             "<p "
                                     f"style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential:{self.frpp_df['Concentrating Solar Power (kW)'].sum()*0.001:>35,.0f} MW</span></p>\n"
@@ -808,12 +805,13 @@ class MainWindow(QMainWindow):
         # Add some text for labels, title and custom x-axis tick labels, etc.
         self.cfe_bar_canvas.axes.set_ylabel('Energy (MWh)')
         self.cfe_bar_canvas.axes.set_title('Energy Source by Fiscal Year')
-        self.cfe_bar_canvas.axes.set_xticks(x + width, year_ind)
+        self.cfe_bar_canvas.axes.set_xticks(x + width, year_ind)        
         self.cfe_bar_canvas.axes.legend(loc='upper right', ncols=2)
 
         self.setup_econ_page()
         self.build_econ_model()
 
+        self.actionExport_Results.setEnabled(True)
         self.stackedWidget.setCurrentIndex(2)
 
     def owner_switch(self):
@@ -957,6 +955,55 @@ class MainWindow(QMainWindow):
             ((cur_dict['electric_cost_escalation_ub']-cur_dict['electric_cost_escalation_lb'])/50)
         self.econ_price_esc_lineEdit.setText(f"{esc_val}")  
         self.toggle_econ_signals(False) 
+
+    def reset(self):
+        '''
+        Starts the analysis over from the beginning
+        '''
+        # Reset class variables
+        self.assmpt_dlf_errors = []
+        self.frpp_df = None
+        self.econ_df = pd.DataFrame()
+        self.cfe_use_df = pd.DataFrame()
+        self.agency_energy_data = None
+        self.agency_price_data = None
+        self.cfe_bar_canvas.axes.cla() 
+        self.econ_canvas.axes.cla() 
+
+        # Restore default choices
+        self.agency_comboBox.setCurrentIndex(0)
+        self.pg1_progressBar.setValue(0)
+
+        # Move to the first page
+        self.actionExport_Results.setEnabled(False)
+        self.stackedWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(0)
+        self.statusbar.showMessage("Model Reset", 30000)
+
+    def export(self):
+        '''
+        User will be asked to provide an export folder then 
+        the following tables will be exported as csv.
+        - self.frpp_df
+        - self.econ_df
+        - self.cfe_use_df    
+        '''
+
+        # Ask for a folder to save
+        folder = QFileDialog.getExistingDirectory(self,"Select a directory to export CFE Results", str(self.output_folder))
+        if folder:
+            self.output_folder = folder
+            now = datetime.now()
+            new_folder = os.path.join(folder, f"CFE_Export_{now.year}{now.month}{now.day}{now.hour}{now.minute}")
+            if not os.path.exists(new_folder):
+                os.mkdir(new_folder)
+
+            self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))
+            self.econ_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Econ_Data.csv"))
+            self.cfe_use_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Transition.csv"))
+        else:
+            self.statusbar.showMessage("Export Canceled", 30000)
+        print()
 
     # Functions not tied to any button
     def build_econ_model(self):
@@ -1140,14 +1187,17 @@ class MainWindow(QMainWindow):
 
         # Build the bar chart    
         self.econ_canvas.axes.cla()    
-        x = np.arange(len(year_ind))  # the label locations
-        self.econ_canvas.axes.bar(x, self.econ_df['Cumulative Cash Flow ($)'].values, 0.8, label="NPV") 
+        x = np.arange(len(year_ind)+1)  # the label locations
+        self.econ_canvas.axes.bar(x, np.concatenate(([-investment],
+                                  self.econ_df['Cumulative Cash Flow ($)'].values[:])), 0.8, label="NPV") 
         self.econ_canvas.axes.grid(True, axis="y", color = "grey", linewidth = "1.4")          
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
         self.econ_canvas.axes.set_ylabel('Net Present Value ($)')
         self.econ_canvas.axes.set_title('Cummulative Cash Flow by Fiscal Year')
-        self.econ_canvas.axes.set_xticks(x, year_ind)
+        self.econ_canvas.axes.set_xticks(x, [cur_year] + year_ind)
+        xlabels = ['%i' % i for i in [cur_year]+ year_ind]
+        self.econ_canvas.axes.set_xticklabels(xlabels, rotation=45)
         self.econ_canvas.draw()
 
         # Fill in the output textedits
@@ -1679,6 +1729,17 @@ class MainWindow(QMainWindow):
 
         self.toggle_econ_signals(False)
 
+    def agency_code(self):
+        ind = self.agency_comboBox.currentIndex()
+        code = {0: 'NA', 1: "USDA", 2: "DOC", 3: "USACE",
+                4: "CSOSA", 5: "DOE", 6: "EPA", 7: "EOP",
+                8: "FRTIB", 9: "GSA", 10: "HHS", 11: "DHS",
+                12: "IND", 13: "DOI", 14: "DOJ", 15: "DOL",
+                16: "MSPB", 17: "NASA", 18: "NCUA", 19: "PSA",
+                20: "FRCA", 21: "SMITH", 22: "DOS", 23: "USAID",
+                24: "TVA", 25: "DOT", 26: "DFC", 27: "USHMM",
+                28: "USAGM", 29: "VA"}
+        return code[ind]
 
 
 if __name__ == "__main__":
