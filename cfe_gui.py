@@ -491,10 +491,10 @@ class MainWindow(QMainWindow):
         filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
         n_solar_roof = filter_.sum()
         dmy[filter_] = cur_dict['dc_to_ac_ratio'] *(cur_dict['per_rad_to_elec']/100.) * \
-            (0.0929031299*self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day']) * \
-            self.frpp_df[filter_]['est_rooftop_area_sqft'] * (cur_dict['precent_roof_avail']/100.) / \
-            cur_dict['avg_sun_hours']
-            # 0.0929031299 is m2 to ft2
+            self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day'] * \
+            0.0929031299* self.frpp_df[filter_]['est_rooftop_area_sqft'] * \
+            (cur_dict['precent_roof_avail']/100.) / cur_dict['avg_sun_hours']
+            # 0.0929031299 is ft2 to m2
         self.frpp_df['Rooftop Solar Power'] = dmy.tolist()            
         # Calculate the A.C. Ground mounted Solar
         dmy = np.zeros(self.frpp_df.shape[0])
@@ -502,12 +502,14 @@ class MainWindow(QMainWindow):
         filter_ = ~self.frpp_df['Acres'].isna()
         n_solar_grnd = filter_.sum()
         dmy[filter_] = cur_dict['dc_to_ac_ratio'] * (cur_dict['per_rad_to_elec']/100.) * (cur_dict['perc_land_used']/100.) * \
-            (0.0929031299*self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day']) * self.frpp_df[filter_]['Acres'] * (43560.) / \
+            self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day'] * self.frpp_df[filter_]['Acres'] * (0.0929031299*43560.) / \
             cur_dict['avg_sun_hours']
         self.frpp_df['Ground Solar Power'] = dmy.tolist()
         # Calculate annual energy rate for solar
-        self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = self.frpp_df['Rooftop Solar Power'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
-        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = self.frpp_df['Ground Solar Power'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+        self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = self.frpp_df['Rooftop Solar Power'] * cur_dict['avg_sun_hours'] *\
+              365 * ((100-cur_dict['capacity_factor'])/100.)
+        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = self.frpp_df['Ground Solar Power'] * cur_dict['avg_sun_hours'] *\
+              365 * ((100-cur_dict['capacity_factor'])/100.)
 
         ''' Wind Power '''
         cur_dict = self.model_assump['wind']['system']
