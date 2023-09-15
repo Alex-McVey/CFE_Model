@@ -12,6 +12,7 @@ import numpy as np
 import numpy_financial as npf
 import geopandas as gpd
 import rasterio
+from pypvwatts import PVWatts
 from pyproj import Transformer
 import time
 from datetime import datetime
@@ -27,7 +28,7 @@ PROJECT_UI = PROJECT_PATH / "cfe_model.ui"
 ASSUMP_DLG = PROJECT_PATH / "model_assumptions.ui"
 DEFAULT_WHITE = u"background-color: rgb(255, 255, 255);"
 DEFAULT_ERROR = u"background-color: rgb(255, 103, 103);"
-
+PVWatts.api_key = 'gDMlfWrkSIbMNQRtZvz4Dts8Uve2kpLqQjumvOOk'
 
 class MplCanvas(FigureCanvasQTAgg):
 
