@@ -50,7 +50,7 @@ class solar_pv:
     >>> print(pv_system.metadata)
     """
     def __init__(self, lat:float, lon:float, rooftop_area:float, system_loss=14.08, dc_ac=1.2, 
-                 invert_eff=96, per_area=25, tilt=20, azimuth=180, mod_type=0) -> None:
+                 invert_eff=96, per_area=25, tilt=20, azimuth=180, mod_type=0, ground=False) -> None:
         # Latitude and Longitude
         self.lat = lat
         self.lon = lon
@@ -83,6 +83,11 @@ class solar_pv:
         # DC System Size
         # Size (kW) = Array Area (m²) × 1 kW/m² × Module Efficiency (%)
         self.dc_nameplate = ((rooftop_area*0.092903)*(per_area/100)) * 1 * self.nom_eff
+        # installed nominal operating temperature 
+        if ground:
+            self.inoct = 45
+        else:
+            self.inoct = 50
         # Read the solar data from the station binary
         self.solar_data = None
         self.metadata = None
@@ -262,19 +267,14 @@ class solar_pv:
                                          np.sin(L)*np.cos(delta)*np.cos(h)*np.sin(beta)*np.cos(Zs) +
                                          np.cos(delta)*np.sin(h)*np.sin(beta)*np.sin(Zs)))
         self.solar_power = pd.DataFrame({'Incident Angle': inc_angle})
-        # Perez Sky Diffuse calculation [2]
-        num_processes = multiprocessing.cpu_count()  # Get the number of CPU cores available
-        pool = multiprocessing.Pool(processes=num_processes)
-        # pool = multiprocessing.Pool(processes=max(num_processes-5,1))               
-        results = pool.map(self.perez, range(self.solar_data.shape[0]))
-        pool.close()
-        pool.join()
-
-        radiation = np.zeros((self.solar_data.shape[0],3))
-        for i, result in enumerate(results):
-            radiation[i,0] = result[0]
-            radiation[i,1] = result[1]
-            radiation[i,2] = result[2]        
+        
+        # Perez Sky Diffuse calculation [2]       
+        radiation = np.zeros((self.solar_data.shape[0],3)) 
+        for qq in range(self.solar_data.shape[0]):
+            rad = self.perez(qq)
+            radiation[qq,0] = rad[0]
+            radiation[qq,1] = rad[1]
+            radiation[qq,2] = rad[2]   
         self.solar_power['Beam'] = radiation[:,0].tolist()
         self.solar_power['Total Sky Diffuse'] = radiation[:,1].tolist()
         self.solar_power['Ground Diffuse'] = radiation[:,2].tolist()
@@ -282,7 +282,7 @@ class solar_pv:
             self.solar_power['Total Sky Diffuse'] + self.solar_power['Ground Diffuse'] 
         # Cell Temperature 
         # [1] equation 9.35 pg 504
-        self.solar_power['Cell Temp'] = (45-20)*(self.solar_power['Absorbed Solar Radiation (W/m^2)']/800)*\
+        self.solar_power['Cell Temp'] = (self.inoct-20)*(self.solar_power['Absorbed Solar Radiation (W/m^2)']/800)*\
             (1-((self.nom_eff/100)/0.9))+self.solar_data['Temperature']
         # DC Power [3]
         self.solar_power['DC Power'] =(self.dc_nameplate*(1+ self.gamma*(self.solar_power['Cell Temp']-25))*\

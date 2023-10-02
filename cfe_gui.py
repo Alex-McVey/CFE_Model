@@ -497,24 +497,23 @@ class MainWindow(QMainWindow):
         dmy2[:] = np.nan    
         filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
         n_solar_roof = filter_.sum()
-        for qq, val in enumerate(filter_):
-            print(f"Processing Location {qq+1} of {len(dmy)}")
-            if val:     
-                if cur_dict['use_lat_tilt']:
-                    solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                        self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
-                                        dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                        per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
-                                        azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])       
-                else:
-                    solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                        self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
-                                        dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                        per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
-                                        azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])
-                solar_calc.analyze()
-                dmy[qq] = solar_calc.total
-                dmy2[qq] = solar_calc.dc_nameplate
+        for qq in np.where(filter_)[0]:
+            print(f"Processing Location {qq+1} of {len(dmy)}")               
+            if cur_dict['use_lat_tilt']:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])       
+            else:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])
+            solar_calc.analyze()
+            dmy[qq] = solar_calc.total
+            dmy2[qq] = solar_calc.dc_nameplate
         self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
         self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
         stop = timeit.default_timer()
@@ -522,21 +521,29 @@ class MainWindow(QMainWindow):
         # Calculate the A.C. Ground mounted Solar
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan  
+        dmy2 = np.zeros(self.frpp_df.shape[0])
+        dmy2[:] = np.nan   
         filter_ = ~self.frpp_df['Acres'].isna()
         n_solar_grnd = filter_.sum()
-        dmy[filter_] = cur_dict['dc_to_ac_ratio'] * 0.16 * (cur_dict['perc_land_used']/100.) * \
-            self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day'] * self.frpp_df[filter_]['Acres'] * (0.0929031299*43560.) / 5
-        # dmy[filter_] = cur_dict['dc_to_ac_ratio'] * (cur_dict['per_rad_to_elec']/100.) * (cur_dict['perc_land_used']/100.) * \
-        #     self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day'] * self.frpp_df[filter_]['Acres'] * (0.0929031299*43560.) / \
-        #     cur_dict['avg_sun_hours']
-        self.frpp_df['Ground Solar Power'] = dmy.tolist()
-        # Calculate annual energy rate for solar
-        # self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = self.frpp_df['Rooftop Solar Power'] * cur_dict['avg_sun_hours'] *\
-        #       365 * ((100-cur_dict['capacity_factor'])/100.)
-        # self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = self.frpp_df['Ground Solar Power'] * cur_dict['avg_sun_hours'] *\
-        #       365 * ((100-cur_dict['capacity_factor'])/100.)
-        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = self.frpp_df['Ground Solar Power'] * 5 * 24 *\
-              365 * (16/100.)
+        for qq in np.where(filter_)[0]:            
+            if cur_dict['use_lat_tilt']:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['perc_land_used'], system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)       
+            else:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['perc_land_used'], system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)
+            solar_calc.analyze()
+            dmy[qq] = solar_calc.total
+            dmy2[qq] = solar_calc.dc_nameplate
+
+        self.frpp_df['Ground Solar Power'] = dmy.tolist()        
+        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = dmy2.tolist()
 
         ''' Wind Power '''
         cur_dict = self.model_assump['wind']['system']
