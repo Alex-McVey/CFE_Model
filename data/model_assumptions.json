@@ -1,0 +1,142 @@
+{
+    "wind": {
+        "system": {
+            "fraction_of_average_wind_speed": 1.0,
+            "turbine_diameter": 100.0,
+            "capacity_factor": 38.0,
+            "N_turbines": 1,
+            "turbine_spacing": 500.0,
+            "overall_efficiency": 86.0,
+            "power_coefficient": 0.4
+        },
+        "gov_rates": {
+            "discount_rate": -2.0,
+            "inflation_rate": -1.0,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 0.0,
+            "project_life": 25.0
+        },
+        "third_party_rates": {
+            "discount_rate": 5.64,
+            "inflation_rate": 2.5,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 26.0,
+            "project_life": 26.0
+        }
+    },
+    "solar": {
+        "system": {
+            "per_rad_to_elec": 18.0,
+            "avg_radiation_frac": 1.0,
+            "avg_sun_hours": 5.0,
+            "capacity_factor": 16.0,
+            "dc_to_ac_ratio": 1.2,
+            "invert_eff": 96.0,
+            "precent_roof_avail": 25.0,
+            "perc_land_used": 50.0
+        },
+        "gov_rates": {
+            "discount_rate": -2.0,
+            "inflation_rate": -1.0,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 0.0,
+            "project_life": 25.0
+        },
+        "third_party_rates": {
+            "discount_rate": 5.64,
+            "inflation_rate": 2.5,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 26.0,
+            "project_life": 26.0
+        }
+    },
+    "conc_solar": {
+        "system": {
+            "optical_eff": 59.8,
+            "elec_eff": 17.0,
+            "thermal_storage": 10.0,
+            "avg_sun_hours": 5.0,
+            "perc_land_used": 50.0,
+            "capacity_factor": 36.0
+        },
+        "gov_rates": {
+            "discount_rate": -2.0,
+            "inflation_rate": -1.0,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 0.0,
+            "project_life": 25.0
+        },
+        "third_party_rates": {
+            "discount_rate": 5.64,
+            "inflation_rate": 2.5,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 26.0,
+            "project_life": 26.0
+        }
+    },
+    "hydrogen": {
+        "system": {
+            "capacity_factor": 60.0,
+            "daily_operation": 24.0,
+            "fuel_used": "Hydrogen",
+            "curr_density": 2500.0,
+            "cell_active_area": 1.66,
+            "cell_voltage": 0.7,
+            "N_stacks": 12,
+            "proton_exchange": true,
+            "heat_recovery": false,
+            "heating_value": 142000.0,
+            "stack_replacement": 5.0,
+            "annual_degredation": 10.0
+        },
+        "gov_rates": {
+            "discount_rate": -2.0,
+            "inflation_rate": -1.0,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 0.0,
+            "project_life": 25.0
+        },
+        "third_party_rates": {
+            "discount_rate": 5.64,
+            "inflation_rate": 2.5,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 26.0,
+            "project_life": 26.0
+        }
+    },
+    "geo_therm": {
+        "system": {
+            "well_diameter": 0.25,
+            "fluid_velocity": 2.0,
+            "well_depth": 3000.0,
+            "turb_outlet_temp": 60.0,
+            "capacity_factor": 90.0,
+            "fluid_density": 1000.0,
+            "overall_pump_efficiency": 70.0
+        },
+        "gov_rates": {
+            "discount_rate": -2.0,
+            "inflation_rate": -1.0,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 0.0,
+            "project_life": 25.0
+        },
+        "third_party_rates": {
+            "discount_rate": 5.64,
+            "inflation_rate": 2.5,
+            "electric_cost_escalation_lb": 0.9,
+            "electric_cost_escalation_ub": 1.745,
+            "taxation": 26.0,
+            "project_life": 26.0
+        }
+    }
+}

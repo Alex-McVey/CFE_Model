@@ -2,3 +2,5 @@ convert_qrc_2_py.txt
 data/
 .vscode/
 __pycache__/
+build/
+dist/
