@@ -5,6 +5,7 @@ import pandas as pd
 import struct
 import datetime
 import numpy as np
+import multiprocessing
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 DATA_PATH = PROJECT_PATH / "data"
@@ -262,12 +263,18 @@ class solar_pv:
                                          np.cos(delta)*np.sin(h)*np.sin(beta)*np.sin(Zs)))
         self.solar_power = pd.DataFrame({'Incident Angle': inc_angle})
         # Perez Sky Diffuse calculation [2]
+        num_processes = multiprocessing.cpu_count()  # Get the number of CPU cores available
+        pool = multiprocessing.Pool(processes=num_processes)
+        # pool = multiprocessing.Pool(processes=max(num_processes-5,1))               
+        results = pool.map(self.perez, range(self.solar_data.shape[0]))
+        pool.close()
+        pool.join()
+
         radiation = np.zeros((self.solar_data.shape[0],3))
-        for qq in range(self.solar_data.shape[0]):
-            rad = self.perez(qq)
-            radiation[qq,0] = rad[0]
-            radiation[qq,1] = rad[1]
-            radiation[qq,2] = rad[2]
+        for i, result in enumerate(results):
+            radiation[i,0] = result[0]
+            radiation[i,1] = result[1]
+            radiation[i,2] = result[2]        
         self.solar_power['Beam'] = radiation[:,0].tolist()
         self.solar_power['Total Sky Diffuse'] = radiation[:,1].tolist()
         self.solar_power['Ground Diffuse'] = radiation[:,2].tolist()
@@ -377,7 +384,9 @@ class solar_pv:
         self.post_process()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     # Read required Lat/Lon
     solar_calc = solar_pv(38.886777, -77.02997, 374686.66666)
     solar_calc.analyze()
+    
+   

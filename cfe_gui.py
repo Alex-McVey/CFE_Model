@@ -518,13 +518,7 @@ class MainWindow(QMainWindow):
         self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
         self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
         stop = timeit.default_timer()
-        print('Time: ', stop - start)
-        # dmy[filter_] = cur_dict['dc_to_ac_ratio'] *(cur_dict['per_rad_to_elec']/100.) * \
-        #     self.frpp_df[filter_]['Annual Solar Radiation kWh/m2/day'] * \
-        #     0.0929031299* self.frpp_df[filter_]['est_rooftop_area_sqft'] * \
-        #     (cur_dict['precent_roof_avail']/100.) / cur_dict['avg_sun_hours']
-        #     # 0.0929031299 is ft2 to m2
-        # self.frpp_df['Rooftop Solar Power'] = dmy.tolist()            
+        print('Time: ', stop - start)                  
         # Calculate the A.C. Ground mounted Solar
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan  
