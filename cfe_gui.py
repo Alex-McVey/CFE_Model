@@ -562,6 +562,8 @@ class MainWindow(QMainWindow):
         dmy[:] = np.nan 
         filter_ = np.logical_and(self.frpp_df['Real Property Type'] == 'Land', self.frpp_df['Real Property Use'] == 'Vacant')
         n_conc_sol = filter_.sum()
+        dmy[filter_] = (1.0 *(1000/cur_dict['avg_sun_hours'])*((cur_dict['perc_land_used']/100)*self.frpp_df[filter_]['Acres'] * 43560.))*\
+            (cur_dict['optical_eff']/100)*(cur_dict['elec_eff']/100)/1000.  # The 1.0 is 1 kWh/ft2/day of radiation. No idea why
         # calculate
         self.frpp_df['Concentrating Solar Power (kW)'] = dmy.tolist()
         self.frpp_df['Annual Concentrating Solar Power (kWh)'] = self.frpp_df['Concentrating Solar Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)

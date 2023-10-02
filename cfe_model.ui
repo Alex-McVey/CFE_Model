@@ -367,7 +367,7 @@ font: 16pt &quot;Segoe UI&quot;;</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="cfe_res.qrc">:/images/id25117_BidenEnergy500.jpg</pixmap>
+              <pixmap resource="cfe_res.qrc">:/images/bcg-6-clean-tech.jpg</pixmap>
              </property>
             </widget>
            </item>
