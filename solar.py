@@ -16,7 +16,7 @@ class solar_pv:
     Parameters:
     - lat (float): Latitude of the location (in degrees).
     - lon (float): Longitude of the location (in degrees).
-    - rooftop_area (float): Area of the rooftop available for the solar PV system (in square meters).
+    - rooftop_area (float): Area of the rooftop available for the solar PV system (in square feet).
     - system_loss (float, optional): System loss as a percentage (default is 14.08%).
     - dc_ac (float, optional): DC to AC ratio (default is 1.2).
     - invert_eff (float, optional): Inverter efficiency as a percentage (default is 96%).
@@ -56,10 +56,14 @@ class solar_pv:
         lat = str(lat)
         lon = str(lon)
         # Look up what the station ID for the Lat/Lon
-        key = f'{lat[:lat.find(".")+3]}&{lon[:lon.find(".")+3]}'
+        # key = f'{lat[:lat.find(".")+3]}&{lon[:lon.find(".")+3]}' GSA Data only
+        key = f'{lat[:lat.find(".")]}&{lon[:lon.find(".")]}'
         with open(os.path.join(DATA_PATH, "Lat_Lon_keyMap.json")) as json_data:
             map_dict = json.load(json_data)
-        station_id = map_dict[key][0]
+        if key in map_dict.keys():
+            station_id = map_dict[key][0]
+        else:
+            station_id = self.find_closest_station(map_dict)
         # Other system attributes
         self.system_loss = system_loss/100
         self.dc_ac = dc_ac
@@ -67,22 +71,25 @@ class solar_pv:
         self.tilt = tilt 
         self.azimuth = azimuth
         if mod_type == 0:
-            self.nom_eff = 0.19 # Standard
+            self.nom_eff = 0.16 # Standard
             self.gamma = -0.0047
         elif mod_type == 1:
-            self.nom_eff = 0.21 # Premium
+            self.nom_eff = 0.18 # Premium
             self.gamma = -0.0035
         else:
-            self.nom_eff = 0.18 # Thin Film
+            self.nom_eff = 0.11 # Thin Film
             self.gamma = -0.0020
         # DC System Size
         # Size (kW) = Array Area (m²) × 1 kW/m² × Module Efficiency (%)
-        self.dc_nameplate = (rooftop_area*(per_area/100)) * 1 * self.nom_eff
+        self.dc_nameplate = ((rooftop_area*0.092903)*(per_area/100)) * 1 * self.nom_eff
         # Read the solar data from the station binary
         self.solar_data = None
         self.metadata = None
         self.solar_power = None
         self.tz = None # Time zone
+        self.monthly_ac = np.zeros(12)
+        self.monthly_rad = np.zeros(12)
+        self.total = 0
         self.read_bin_file(station_id)
 
     def read_bin_file(self, id:int):
@@ -146,6 +153,21 @@ class solar_pv:
         
         self.solar_data = data
         self.metadata = metadata
+
+    def find_closest_station(self, map_dict):
+        min_dist = 1.0e20
+        station_id = ''
+        for key, value in map_dict.items():
+            split = key.split('&')
+            lat = float(split[0])
+            lon = float(split[1])
+            dist = np.arccos( np.sin(np.radians(self.lat))*np.sin(np.radians(lat)) + \
+                             np.cos(np.radians(self.lat))*np.cos(np.radians(lat))*\
+                                np.cos(np.radians(lon)-np.radians(self.lon)) ) * 6371000
+            if dist < min_dist:
+                station_id = value[0]
+                min_dist = dist
+        return station_id
 
     def calculate_solar_position(self):
         '''
@@ -256,8 +278,21 @@ class solar_pv:
         self.solar_power['Cell Temp'] = (45-20)*(self.solar_power['Absorbed Solar Radiation (W/m^2)']/800)*\
             (1-((self.nom_eff/100)/0.9))+self.solar_data['Temperature']
         # DC Power [3]
-        
-        print()
+        self.solar_power['DC Power'] =(self.dc_nameplate*(1+ self.gamma*(self.solar_power['Cell Temp']-25))*\
+                                       (self.solar_power['Absorbed Solar Radiation (W/m^2)']/1000))*(1-self.system_loss)
+        plr = np.zeros(self.solar_data.shape[0])
+        plr = self.solar_power['DC Power'].values/((self.dc_nameplate/self.dc_ac)/(self.invert_eff))
+        eta = np.zeros(self.solar_data.shape[0])
+        ac_pow = np.zeros(self.solar_data.shape[0])
+        filter_ = plr > 0
+        if np.sum(filter_) > 0:
+            eta[filter_] = (-0.0162*plr[filter_] + -0.0059/plr[filter_] + 0.9858)*self.invert_eff/0.9637
+            ac_pow[filter_] = self.solar_power[filter_]['DC Power']*eta[filter_]*0.9
+            #                                                                   |-> from here over is wrong and added to account
+            #                                                                       for extra losses that PVWatts has that I don't
+            ac_pow[np.where(ac_pow > self.dc_nameplate/self.dc_ac)] = self.dc_nameplate/self.dc_ac
+        ac_pow[np.where(ac_pow < 0)] = 0.0
+        self.solar_power['AC Power'] = ac_pow.tolist()               
 
     def perez(self, i)->list:
         # Perez Sky Diffuse calculation [2]
@@ -327,11 +362,19 @@ class solar_pv:
                     (1.0 - np.cos(np.radians(self.tilt))) / 2.0  # ground diffuse    
                 return out
 
+    def post_process(self):
+        n_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        for i in range(12):
+            self.monthly_ac[i] = self.solar_power.loc[self.solar_power.index.month==i+1]['AC Power'].sum()
+            self.monthly_rad[i] = (self.solar_power.loc[self.solar_power.index.month==i+1]['Absorbed Solar Radiation (W/m^2)'].sum()/n_days[i])/1000
+        self.total = self.solar_power['AC Power'].sum()
+
     def analyze(self):
         '''
         '''
         self.calculate_solar_position()
         self.calculate_solar_power()
+        self.post_process()
 
 
 if __name__ == "__main__":
