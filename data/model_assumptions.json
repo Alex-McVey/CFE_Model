@@ -28,10 +28,11 @@
     },
     "solar": {
         "system": {
-            "per_rad_to_elec": 18.0,
-            "avg_radiation_frac": 1.0,
-            "avg_sun_hours": 5.0,
-            "capacity_factor": 16.0,
+            "module_type": 0,
+            "system_losses": 14.0,
+            "use_lat_tilt": true,
+            "tilt": 20.0,
+            "azimuth": 180.0,
             "dc_to_ac_ratio": 1.2,
             "invert_eff": 96.0,
             "precent_roof_avail": 25.0,
