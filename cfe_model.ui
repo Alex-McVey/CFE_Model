@@ -367,7 +367,7 @@ font: 16pt &quot;Segoe UI&quot;;</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="cfe_res.qrc">:/images/bcg-6-clean-tech.jpg</pixmap>
+              <pixmap resource="cfe_res.qrc">:/images/id25117_BidenEnergy500.jpg</pixmap>
              </property>
             </widget>
            </item>
@@ -744,6 +744,23 @@ background-color: rgb(255, 146, 124);
              </item>
             </layout>
            </item>
+           <item>
+            <widget class="QProgressBar" name="build_cfe_progressBar">
+             <property name="value">
+              <number>0</number>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignHCenter">
+            <widget class="QLabel" name="time_left_label_label">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -933,8 +950,8 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-50</y>
-                 <width>1270</width>
+                 <y>0</y>
+                 <width>959</width>
                  <height>1044</height>
                 </rect>
                </property>
@@ -1848,6 +1865,7 @@ Certificate: REC ($/MWh)</string>
      <string>File</string>
     </property>
     <addaction name="actionNew"/>
+    <addaction name="actionLoad"/>
     <addaction name="actionExport_Results"/>
    </widget>
    <addaction name="menuFile"/>
@@ -1864,6 +1882,11 @@ Certificate: REC ($/MWh)</string>
    </property>
    <property name="text">
     <string>Export Results</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
    </property>
   </action>
  </widget>
