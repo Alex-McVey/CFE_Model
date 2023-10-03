@@ -490,7 +490,6 @@ class MainWindow(QMainWindow):
         dmy2 = np.zeros(self.frpp_df.shape[0])
         dmy2[:] = np.nan    
         filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
-        n_solar_roof = filter_.sum()
         for qq in np.where(filter_)[0]:
             print(f"Processing Location {qq+1} of {len(dmy)}")               
             if cur_dict['use_lat_tilt']:
@@ -519,20 +518,18 @@ class MainWindow(QMainWindow):
         dmy2 = np.zeros(self.frpp_df.shape[0])
         dmy2[:] = np.nan   
         filter_ = ~self.frpp_df['Acres'].isna()
-
-        n_solar_grnd = filter_.sum()
         for qq in np.where(filter_)[0]:            
             if cur_dict['use_lat_tilt']:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['perc_land_used'], system_loss=cur_dict['system_losses'],
+                                    self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
                                     dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
+                                    per_area=cur_dict['perc_land_used'], tilt=self.frpp_df.iloc[qq]['Latitude'],
                                     azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)       
             else:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['perc_land_used'], system_loss=cur_dict['system_losses'],
+                                    self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
                                     dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
+                                    per_area=cur_dict['perc_land_used'], tilt=cur_dict['tilt'],
                                     azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)
             solar_calc.analyze()
             dmy[qq] = solar_calc.total
