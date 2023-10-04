@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
-from PyQt6.QtCore import Qt, QCoreApplication
+from PyQt6.QtCore import *#Qt, QCoreApplication, pyqtSignal
 from PyQt6.uic import loadUi
 
 import sys
@@ -19,11 +19,12 @@ import time
 from datetime import datetime
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import timeit
+import logging
 
 from model_assump_dlg import model_assump_dlg
 import rc_cfe
 
-import timeit
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 DATA_PATH = PROJECT_PATH / "data"
@@ -32,6 +33,7 @@ ASSUMP_DLG = PROJECT_PATH / "model_assumptions.ui"
 DEFAULT_WHITE = u"background-color: rgb(255, 255, 255);"
 DEFAULT_ERROR = u"background-color: rgb(255, 103, 103);"
 PVWatts.api_key = 'gDMlfWrkSIbMNQRtZvz4Dts8Uve2kpLqQjumvOOk'
+logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -39,6 +41,42 @@ class MplCanvas(FigureCanvasQTAgg):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         super(MplCanvas, self).__init__(self.fig)    
+
+
+class SolarPVWorker(QObject):
+    result_signal = pyqtSignal(int, float, float)  # Signal to send the results (qq, total, dc_nameplate)
+
+    def __init__(self, qq, params):
+        super().__init__()
+        self.qq = qq
+        self.params = params
+
+    def solar_calculation(self):
+        # Perform the solar calculation here
+        logging.info(f"Working in thread {self.qq}")
+        solar_calc = solar_pv(self.params[0], self.params[1], self.params[2], system_loss=self.params[3],
+                                dc_ac=self.params[4], invert_eff=self.params[5],per_area=self.params[6], 
+                                tilt=self.params[7],azimuth=self.params[8], mod_type=self.params[9])   
+        solar_calc.analyze()     
+        total, dc_nameplate = solar_calc.total, solar_calc.dc_nameplate
+        self.result_signal.emit(self.qq, total, dc_nameplate)
+
+
+class SolarPVTask(QRunnable):
+    def __init__(self, qq, params, callback=None):
+        super().__init__()
+        self.qq = qq
+        self.params = params
+        self.callback = callback
+
+    def run(self):
+        worker = SolarPVWorker(self.qq, self.params)
+        worker.result_signal.connect(self.handle_solar_calc_results)
+        worker.solar_calculation()
+
+    def handle_solar_calc_results(self, qq, total, dc_nameplate):
+        if self.callback:
+            self.callback(qq, total, dc_nameplate)
 
 
 class MainWindow(QMainWindow):
@@ -126,6 +164,11 @@ class MainWindow(QMainWindow):
         self.agency_energy_data = None
         self.agency_price_data = None
         self.output_folder = DATA_PATH
+        self.threadpool = QThreadPool()
+        self.solar_power = None
+        self.solar_energy = None
+        self.solar_count = 0
+        self.solar_max = 0
 
         # Set defaults
         self.actionExport_Results.setEnabled(False)
@@ -480,43 +523,92 @@ class MainWindow(QMainWindow):
             else:
                 self.agency_price_data = agency_price_data.loc[(agency_price_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
-        ''' Solar Power '''
-        start = timeit.default_timer()
+        ''' Solar Power '''        
         cur_dict = self.model_assump['solar']['system']        
         # Calculate the A.C. Roof-top solar power  
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan     
-
         dmy2 = np.zeros(self.frpp_df.shape[0])
-        dmy2[:] = np.nan    
+        dmy2[:] = np.nan  
+        self.solar_power = np.zeros(self.frpp_df.shape[0])
+        self.solar_power[:] = np.nan  
+        self.solar_energy = np.zeros(self.frpp_df.shape[0])
+        self.solar_energy[:] = np.nan  
         filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
-        for qq in np.where(filter_)[0]:
-            print(f"Processing Location {qq+1} of {len(dmy)}")               
-            if cur_dict['use_lat_tilt']:
-                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
-                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
-                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])       
-            else:
-                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
-                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
-                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])
-            solar_calc.analyze()
-            dmy[qq] = solar_calc.total
-            dmy2[qq] = solar_calc.dc_nameplate
-        self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
-        self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
-        stop = timeit.default_timer()
-        print('Time: ', stop - start)                  
+        self.solar_count = 0
+        self.solar_max = filter_.sum()
+        total_time = filter_.sum()*1.5336891
+        start = timeit.default_timer()
 
+        threads = []
+        
+        for qq in np.where(filter_)[0]:
+            if cur_dict['use_lat_tilt']:
+                params = (qq, (self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'],
+                            self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], cur_dict['system_losses'],
+                            cur_dict['dc_to_ac_ratio'], cur_dict['invert_eff'], cur_dict['precent_roof_avail'],
+                            self.frpp_df.iloc[qq]['Latitude'], cur_dict['azimuth'], cur_dict['module_type']))
+            else:
+                params = (qq, (self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'],
+                            self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], cur_dict['system_losses'],
+                            cur_dict['dc_to_ac_ratio'], cur_dict['invert_eff'], cur_dict['precent_roof_avail'],
+                            cur_dict['tilt'], cur_dict['azimuth'], cur_dict['module_type']))
+
+            # Submit the task to the thread pool
+            solar_pv_task = SolarPVTask(*params, callback=self.handle_solar_calc_results)
+            self.threadpool.start(solar_pv_task)
+            threads.append(solar_pv_task)
+        
+        # timer = QTimer()
+        # timer.timeout.connect(self.check_threadpool)
+        # timer.start(100)
+        self.threadpool.waitForDone()
+        # while not self.threadpool.waitForDone():
+        #     logging.info(f"Log from the waitForDone. Current solarcount is {self.solar_count}")
+        #     self.build_cfe_progressBar.setValue(int(self.solar_count/self.solar_max*100))
+        #     self.cfe_input_page.update()
+        #     self.cfe_input_page.repaint()
+        #     QApplication.processEvents()
+        #     time.sleep(5)
+
+        
+        stop = timeit.default_timer()
+        print('Time: ', stop - start)
+        self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = self.solar_power.tolist()
+        self.frpp_df['Rooftop Solar Power'] = self.solar_energy.tolist()
+        
+        # for qq in np.where(filter_)[0]:  
+            # worker = Worker(self.call_solar, qq) # Any other args, kwargs are passed to the run function
+            # worker.signals.result.connect(self.thread_complete)
+            # worker.signals.progress.connect(self.solar_progress)
+
+            # # Execute
+            # self.threadpool.start(worker)   
+
+            # if cur_dict['use_lat_tilt']:
+            #     solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+            #                         self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
+            #                         dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+            #                         per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
+            #                         azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])       
+            # else:
+            #     solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+            #                         self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
+            #                         dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+            #                         per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
+            #                         azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])
+            # solar_calc.analyze()
+            # dmy[qq] = solar_calc.total
+            # dmy2[qq] = solar_calc.dc_nameplate
+        
+        # self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
+        # self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
+                         
         # Calculate the A.C. Ground mounted Solar
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan  
         dmy2 = np.zeros(self.frpp_df.shape[0])
-        dmy2[:] = np.nan   
+        dmy2[:] = np.nan          
         filter_ = ~self.frpp_df['Acres'].isna()
         for qq in np.where(filter_)[0]:            
             if cur_dict['use_lat_tilt']:
@@ -535,8 +627,8 @@ class MainWindow(QMainWindow):
             dmy[qq] = solar_calc.total
             dmy2[qq] = solar_calc.dc_nameplate
 
-        self.frpp_df['Ground Solar Power'] = dmy.tolist()        
-        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = dmy2.tolist()
+        self.frpp_df['Ground Solar Power'] = dmy2.tolist()        
+        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = dmy.tolist()
 
         ''' Wind Power '''
         cur_dict = self.model_assump['wind']['system']
@@ -959,7 +1051,7 @@ class MainWindow(QMainWindow):
                                 'Wind Power Built (kW)', 'Geothermal Power Built (kW)', 'Ground Solar Energy Built (kWh/yr)', 
                                 'Concentrating Solar Energy Built (kWh)', 'Wind Energy Built (kWh/yr)', 'Geothermal Energy Built (kWh/yr)', 
                                 'Total Power (kW)', 'Total Energy (kWh)']
-            if list(dummy.columns.values[1:]).sort() == required_headers.sort():
+            if list(dummy.columns.values[1:]).sort() != required_headers.sort():
                 msg = QMessageBox(self)
                 msg.setIcon(QMessageBox.Icon.Warning)
                 msg.setText("The provided csv did not match the required headers.\n\nMake sure you only load data that has been saved from the file/export function of this program.")
@@ -1666,6 +1758,24 @@ class MainWindow(QMainWindow):
         out_temp =  np.ones_like(geo_class)
         out_temp[:] = self.model_assump['geo_therm']['system']['turb_outlet_temp']
         return delta_h, in_temp, out_temp
+
+    def check_threadpool(self):
+        if self.threadpool.activeThreadCount() != 0:            
+            self.build_cfe_progressBar.setValue(int(self.solar_count/self.solar_max*100))
+            self.cfe_input_page.update()
+            self.cfe_input_page.repaint()
+            QApplication.processEvents()
+
+    def handle_solar_calc_results(self, qq, total, dc_nameplate):
+        logging.info(f"Log from the handle_solar_calc_results. Current solarcount is {self.solar_count}")
+        self.solar_power[qq] = total
+        self.solar_energy[qq] = dc_nameplate
+        self.solar_count += 1
+        
+    # def thread_complete(self, result):
+    #     print(result)
+    #     self.solar_power[1] = result[0]
+    #     self.solar_energy[1] = result[0]
 
     def populate_report(self):
         n_solar_roof = np.sum(~self.frpp_df['est_rooftop_area_sqft'].isna())
