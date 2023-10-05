@@ -19,9 +19,7 @@ import time
 from datetime import datetime
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-import timeit
 import logging
-# import debugpy
 
 from model_assump_dlg import model_assump_dlg
 import rc_cfe
@@ -45,7 +43,7 @@ class MplCanvas(FigureCanvasQTAgg):
 
 
 class buildCFEWorker(QObject):
-    progress_signal = pyqtSignal(int)
+    progress_signal = pyqtSignal(int, str)
     result_signal = pyqtSignal(object)  
 
     def __init__(self, frpp_df, agency_energy_data, agency_price_data, model_assump):
@@ -54,9 +52,12 @@ class buildCFEWorker(QObject):
         self.agency_energy_data = agency_energy_data
         self.agency_price_data = agency_price_data
         self.model_assump = model_assump
+        self.count = 0
+        self.solar_count = 0
+        self.dmy = None
+        self.dmy2 = None
 
     def build_cfe_model(self):
-        # debugpy.debug_this_thread()
         logging.info(f"Entering the thread") 
         ''' Solar Power '''        
         cur_dict = self.model_assump['solar']['system']        
@@ -70,7 +71,6 @@ class buildCFEWorker(QObject):
         count = 0
                 
         for qq in np.where(filter_)[0]: 
-            logging.info(f"Log from the solar calc. {int(count/solar_count*100)}/100 %") 
             if cur_dict['use_lat_tilt']:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
                                     self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
@@ -87,7 +87,7 @@ class buildCFEWorker(QObject):
             dmy[qq] = solar_calc.total
             dmy2[qq] = solar_calc.dc_nameplate
             count += 1 
-            self.progress_signal.emit(int(count/solar_count*100))  
+            self.progress_signal.emit(int(count/solar_count*100), "Rooftop Solar")  
         self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
         self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
                          
@@ -116,7 +116,7 @@ class buildCFEWorker(QObject):
             dmy[qq] = solar_calc.total
             dmy2[qq] = solar_calc.dc_nameplate
             count += 1 
-            self.progress_signal.emit(int(count/solar_count*100)) 
+            self.progress_signal.emit(int(count/solar_count*100), "Ground Mounted Solar") 
 
         self.frpp_df['Ground Solar Power'] = dmy2.tolist()        
         self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = dmy.tolist()
@@ -339,6 +339,8 @@ class MainWindow(QMainWindow):
         self.actionExport_Results.setEnabled(False)
         self.stackedWidget.setCurrentIndex(0)
         self.tabWidget.setCurrentIndex(0)
+        self.build_cfe_progressBar.setVisible(False)
+        self.time_left_label_label.setVisible(False)
 
     def set_newFRPP_path(self):
         """
@@ -687,6 +689,8 @@ class MainWindow(QMainWindow):
                 return
             else:
                 self.agency_price_data = agency_price_data.loc[(agency_price_data['Agency'] == str(self.agency_comboBox.currentText()))]
+
+        self.toggle_cfe_running(True)
         
         build_model = buildCFEWorker(self.frpp_df.copy(), self.agency_energy_data.copy(), 
                                    self.agency_price_data.copy(), self.model_assump)
@@ -697,10 +701,10 @@ class MainWindow(QMainWindow):
         self.thread.finished.connect(self.thread.deleteLater)
         build_model.result_signal.connect(self.handle_cfeTask_results)
         build_model.progress_signal.connect(self.update_cfeTask_progress)
-        self.thread.finished.connect(self.finalize_frpp_df)
-        print("Thread starting")
+        self.thread.finished.connect(self.finalize_frpp_df) 
         self.thread.start()
         QApplication.processEvents()
+        print("Thread starting")
 
     def finalize_frpp_df(self):
         ''' Finally Sum the various renewables to find the total power per site '''
@@ -847,7 +851,7 @@ class MainWindow(QMainWindow):
 
         self.setup_econ_page()
         self.build_econ_model()
-
+        self.toggle_cfe_running(False)
         self.actionExport_Results.setEnabled(True)
         self.stackedWidget.setCurrentIndex(2)
 
@@ -1010,6 +1014,8 @@ class MainWindow(QMainWindow):
         # Restore default choices
         self.agency_comboBox.setCurrentIndex(0)
         self.pg1_progressBar.setValue(0)
+        self.build_cfe_progressBar.setVisible(False)
+        self.time_left_label_label.setVisible(False)
 
         # Move to the first page
         self.actionExport_Results.setEnabled(False)
@@ -1714,13 +1720,37 @@ class MainWindow(QMainWindow):
 
         return valid, errors
 
-    def update_cfeTask_progress(self, val):           
+    def update_cfeTask_progress(self, val, run_label):           
         self.build_cfe_progressBar.setValue(val)        
-        self.time_left_label_label.setText("Solar stuff")
+        self.time_left_label_label.setText(f"{run_label} is being calculated")
 
     def handle_cfeTask_results(self, frpp_df):
         logging.info(f"Log from the handle_cfeTask_results. Current solarcount is {self.solar_count}")
         self.frpp_df = frpp_df.copy()
+
+    def toggle_cfe_running(self, running:bool):
+        if running:
+            self.energy_proj_lineEdit.setReadOnly(True)
+            self.cur_cfe_lineEdit.setReadOnly(True)
+            self.AEG_lineEdit.setReadOnly(True)
+            self.CB_oper_lineEdit.setReadOnly(True)
+            self.ren_oper_lineEdit.setReadOnly(True)
+            self.oper_days_lineEdit.setReadOnly(True)
+            self.model_assumpt_pushButton.setEnabled(False)
+            self.build_CFE_pushButton.setEnabled(False)
+            self.build_cfe_progressBar.setVisible(True)
+            self.time_left_label_label.setVisible(True)
+        else:
+            self.energy_proj_lineEdit.setReadOnly(False)
+            self.cur_cfe_lineEdit.setReadOnly(False)
+            self.AEG_lineEdit.setReadOnly(False)
+            self.CB_oper_lineEdit.setReadOnly(False)
+            self.ren_oper_lineEdit.setReadOnly(False)
+            self.oper_days_lineEdit.setReadOnly(False)
+            self.model_assumpt_pushButton.setEnabled(True)
+            self.build_CFE_pushButton.setEnabled(True)
+            self.build_cfe_progressBar.setVisible(False)
+            self.time_left_label_label.setVisible(False)
  
     def populate_report(self):
         n_solar_roof = np.sum(~self.frpp_df['est_rooftop_area_sqft'].isna())
