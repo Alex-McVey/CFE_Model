@@ -20,6 +20,8 @@ from datetime import datetime
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import logging
+import timeit
+# import debugpy
 
 from model_assump_dlg import model_assump_dlg
 import rc_cfe
@@ -58,6 +60,8 @@ class buildCFEWorker(QObject):
         self.dmy2 = None
 
     def build_cfe_model(self):
+        # debugpy.debug_this_thread()
+        start = timeit.default_timer()
         logging.info(f"Entering the thread") 
         ''' Solar Power '''        
         cur_dict = self.model_assump['solar']['system']        
@@ -144,6 +148,26 @@ class buildCFEWorker(QObject):
         #   - rho density of the air in kg/m3
         #   - A cross-sectional area of the wind in m2
         #   - v velocity of the wind in m/s
+        
+        # https://windexchange.energy.gov/maps-data/332
+        cap_factor_by_state = { "ALABAMA" : cur_dict['capacity_factor'], "ALASKA" : 28.6, "ARIZONA" : 24.3,
+                                "ARKANSAS" : cur_dict['capacity_factor'], "CALIFORNIA" : 26.8, "COLORADO" : 35.6,
+                                "CONNECTICUT" : cur_dict['capacity_factor'], "DELAWARE" : cur_dict['capacity_factor'], "DISTRICT OF COLUMBIA": cur_dict['capacity_factor'],
+                                "FLORIDA" : cur_dict['capacity_factor'], "GEORGIA" : cur_dict['capacity_factor'], "HAWAII" : 30.5,
+                                "IDAHO" : 30.1, "ILLINOIS" : 34.5, "INDIANA" : 29.7,
+                                "IOWA" : 35.3, "KANSAS" : 42.5, "KENTUCKY" : cur_dict['capacity_factor'],
+                                "LOUISIANA" : cur_dict['capacity_factor'], "MAINE" : 29.4, "MARYLAND" : 33.7,
+                                "MASSACHUSETTS" : 28.7, "MICHIGAN" : 33.1, "MINNESOTA" : 35.9,
+                                "MISSISSIPPI" : cur_dict['capacity_factor'], "MISSOURI" : 31.7, "MONTANA" : 35.5,
+                                "NEBRASKA" : 43.8, "NEVADA" : 27.2, "NEW HAMPSHIRE" : 25.4,
+                                "NEW JERSEY" : cur_dict['capacity_factor'], "NEW MEXICO" : 37.6, "NEW YORK" : 25.7,
+                                "NORTH CAROLINA" : cur_dict['capacity_factor'], "NORTH DAKOTA" : 42.9, "OHIO" : 33.5,
+                                "OKLAHOMA" : 41.1, "OREGON" : 22.1, "PENNSYLVANIA" : 29.9,
+                                "RHODE ISLAND" : cur_dict['capacity_factor'], "SOUTH CAROLINA" : cur_dict['capacity_factor'],
+                                "SOUTH DAKOTA" : 39.6, "TENNESSEE" : 18.3, "TEXAS" : 36.0,
+                                "UTAH" : 25.2, "VERMONT" : 28.5, "VIRGINIA" : cur_dict['capacity_factor'],
+                                "WASHINGTON" : 25.8, "WEST VIRGINIA" : 28.0, "WISCONSIN" : 27.4, "WYOMING" : 33.2}
+
         wind_mod = cur_dict['fraction_of_average_wind_speed']
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan          
@@ -165,7 +189,9 @@ class buildCFEWorker(QObject):
                        self.frpp_df[filter_]['N Wind Turbines'] * 0.001  
         n_wind += filter_.sum()      
         self.frpp_df['Wind Power (kW)'] = dmy.tolist()
-        self.frpp_df['Annual Wind Power (kWh/yr)'] = self.frpp_df['Wind Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+        capFac = np.zeros(self.frpp_df.shape[0])
+        capFac[:] = [cap_factor_by_state[state]/100. if type(state) == str else cur_dict['capacity_factor']/100. for state in self.frpp_df['State Name'].values]
+        self.frpp_df['Annual Wind Power (kWh/yr)'] = self.frpp_df['Wind Power (kW)'] * 24 * 365 * capFac
         
         ''' Concentrating Solar '''
         cur_dict = self.model_assump['conc_solar']['system']
@@ -200,6 +226,8 @@ class buildCFEWorker(QObject):
             365. * (cur_dict['capacity_factor']/100.)
         
         # Finished
+        stop = timeit.default_timer()
+        logging.info('Time: ', stop - start)
         self.result_signal.emit(self.frpp_df)
 
     def geothermal_enthalpy(self, geo_class:np.array)->np.array:
