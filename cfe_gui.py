@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
-from PyQt6.QtCore import Qt, QCoreApplication
+from PyQt6.QtCore import *#Qt, QCoreApplication, pyqtSignal
 from PyQt6.uic import loadUi
 
 import sys
@@ -19,11 +19,11 @@ import time
 from datetime import datetime
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import logging
 
 from model_assump_dlg import model_assump_dlg
 import rc_cfe
 
-import timeit
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 DATA_PATH = PROJECT_PATH / "data"
@@ -32,6 +32,7 @@ ASSUMP_DLG = PROJECT_PATH / "model_assumptions.ui"
 DEFAULT_WHITE = u"background-color: rgb(255, 255, 255);"
 DEFAULT_ERROR = u"background-color: rgb(255, 103, 103);"
 PVWatts.api_key = 'gDMlfWrkSIbMNQRtZvz4Dts8Uve2kpLqQjumvOOk'
+logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 class MplCanvas(FigureCanvasQTAgg):
 
@@ -39,6 +40,207 @@ class MplCanvas(FigureCanvasQTAgg):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         super(MplCanvas, self).__init__(self.fig)    
+
+
+class buildCFEWorker(QObject):
+    progress_signal = pyqtSignal(int, str)
+    result_signal = pyqtSignal(object)  
+
+    def __init__(self, frpp_df, agency_energy_data, agency_price_data, model_assump):
+        super().__init__()
+        self.frpp_df = frpp_df
+        self.agency_energy_data = agency_energy_data
+        self.agency_price_data = agency_price_data
+        self.model_assump = model_assump
+        self.count = 0
+        self.solar_count = 0
+        self.dmy = None
+        self.dmy2 = None
+
+    def build_cfe_model(self):
+        logging.info(f"Entering the thread") 
+        ''' Solar Power '''        
+        cur_dict = self.model_assump['solar']['system']        
+        # Calculate the A.C. Roof-top solar power  
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan     
+        dmy2 = np.zeros(self.frpp_df.shape[0])
+        dmy2[:] = np.nan          
+        filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
+        solar_count = filter_.sum()
+        count = 0
+                
+        for qq in np.where(filter_)[0]: 
+            if cur_dict['use_lat_tilt']:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])       
+            else:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])
+            solar_calc.analyze()
+            dmy[qq] = solar_calc.total
+            dmy2[qq] = solar_calc.dc_nameplate
+            count += 1 
+            self.progress_signal.emit(int(count/solar_count*100), "Rooftop Solar")  
+        self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
+        self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
+                         
+        # Calculate the A.C. Ground mounted Solar
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan  
+        dmy2 = np.zeros(self.frpp_df.shape[0])
+        dmy2[:] = np.nan          
+        filter_ = ~self.frpp_df['Acres'].isna()
+        solar_count = filter_.sum()
+        count = 0
+        for qq in np.where(filter_)[0]:            
+            if cur_dict['use_lat_tilt']:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['perc_land_used'], tilt=self.frpp_df.iloc[qq]['Latitude'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)       
+            else:
+                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
+                                    self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
+                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
+                                    per_area=cur_dict['perc_land_used'], tilt=cur_dict['tilt'],
+                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)
+            solar_calc.analyze()
+            dmy[qq] = solar_calc.total
+            dmy2[qq] = solar_calc.dc_nameplate
+            count += 1 
+            self.progress_signal.emit(int(count/solar_count*100), "Ground Mounted Solar") 
+
+        self.frpp_df['Ground Solar Power'] = dmy2.tolist()        
+        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = dmy.tolist()
+
+        ''' Wind Power '''
+        cur_dict = self.model_assump['wind']['system']
+        # Number of turbines on land
+        #                           (*N Defined by user between 5 and 8ish)
+        # --->  Primary         X <----  N*Turb Diam -----> X
+        #                       -
+        # --->  Wind            |
+        #                      2*Turb Diam                 
+        # --->  Direction       |  
+        #                       -
+        # --->                  X                           X <- Turbine
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan         
+        filter_ = ~self.frpp_df['Annual Average Wind Speed (m/s)'].isna()
+        dmy[filter_] = np.floor(self.frpp_df[filter_]['Acres'] / (2*cur_dict['turbine_diameter']*\
+                                                    cur_dict['turbine_spacing'] * 0.000247105)) # convert to acres
+        dmy[np.where(dmy == 0)] = 1 # If it gets rounded down to 0 I think it should still be able to support 1
+        self.frpp_df['N Wind Turbines'] = dmy.tolist()
+        # Power (W) = (0.5 * Cp * rho * A * v^3) * N_Turbines
+        #   - Cp coefficient of performance
+        #   - rho density of the air in kg/m3
+        #   - A cross-sectional area of the wind in m2
+        #   - v velocity of the wind in m/s
+        wind_mod = cur_dict['fraction_of_average_wind_speed']
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan          
+        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s)'].isna(), \
+                  np.logical_or(self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 25 , \
+                                self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod <= 3))  # Cut in/out speeds
+        dmy[filter_] = 0.0 
+        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s)'].isna(), \
+                  np.logical_and(self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod <= 25, \
+                                 self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 12))  # Power output is constant between these values (ie it cant spin any faster)
+        dmy[filter_] = 0.5 * cur_dict['power_coefficient'] * 1.293 * (np.pi * cur_dict['turbine_diameter']**2 / 4.) * \
+                                              12**3 * self.frpp_df[filter_]['N Wind Turbines'] * 0.001 
+        n_wind = filter_.sum()
+        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s)'].isna(), \
+                  np.logical_and(self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod <= 12, \
+                                 self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 3)) # Between these speeds the turbine speed is proportional to wind speed
+        dmy[filter_] = 0.5 * cur_dict['power_coefficient'] * 1.293 * (np.pi * cur_dict['turbine_diameter']**2 / 4.) * \
+                       (self.frpp_df[filter_]['Annual Average Wind Speed (m/s)']*wind_mod)**3 *\
+                       self.frpp_df[filter_]['N Wind Turbines'] * 0.001  
+        n_wind += filter_.sum()      
+        self.frpp_df['Wind Power (kW)'] = dmy.tolist()
+        self.frpp_df['Annual Wind Power (kWh/yr)'] = self.frpp_df['Wind Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+        
+        ''' Concentrating Solar '''
+        cur_dict = self.model_assump['conc_solar']['system']
+        # Explain
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan 
+        filter_ = np.logical_and(self.frpp_df['Real Property Type'] == 'Land', self.frpp_df['Real Property Use'] == 'Vacant')
+        dmy[filter_] = (1.0 *(1000/cur_dict['avg_sun_hours'])*((cur_dict['perc_land_used']/100)*self.frpp_df[filter_]['Acres'] * 43560.))*\
+            (cur_dict['optical_eff']/100)*(cur_dict['elec_eff']/100)/1000.  # The 1.0 is 1 kWh/ft2/day of radiation. No idea why
+        # calculate
+        self.frpp_df['Concentrating Solar Power (kW)'] = dmy.tolist()
+        self.frpp_df['Annual Concentrating Solar Power (kWh)'] = self.frpp_df['Concentrating Solar Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+
+        ''' GeoThermal '''
+        cur_dict = self.model_assump['geo_therm']['system']
+        dmy = np.zeros(self.frpp_df.shape[0])
+        dmy[:] = np.nan  
+        filter_ = np.logical_and(~self.frpp_df['Geothermal_CLASS'].isna(), self.frpp_df['Geothermal_CLASS'] <=3)
+        enthalpy_diff, inlet_temp, outlet_temp = self.geothermal_enthalpy(self.frpp_df[filter_]['Geothermal_CLASS']) 
+        dmy[filter_] = (((np.pi*cur_dict['well_diameter']**2/4)*cur_dict['fluid_velocity']*cur_dict['fluid_density'])*\
+                         enthalpy_diff* (1-(outlet_temp+273)/(inlet_temp+273))) - \
+                         ((((np.pi*cur_dict['well_diameter']**2/4)*cur_dict['fluid_velocity']*cur_dict['fluid_density']\
+                         *9.81 *cur_dict['well_depth']/(cur_dict['overall_pump_efficiency']/100))*2)/1000)
+        self.frpp_df['Geothermal Power (kW)'] = dmy.tolist()
+        self.frpp_df['Annual Geothermal Power (kWh/yr)'] = self.frpp_df['Geothermal Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+
+        ''' Hydrogen Fuel Cells '''
+        cur_dict = self.model_assump['hydrogen']['system']
+        self.frpp_df['Fuel Cell (kW)'] = (cur_dict['curr_density'] * cur_dict['cell_active_area'] * \
+                                          cur_dict['cell_voltage']) * cur_dict['N_stacks'] * 0.001
+        self.frpp_df['Annual Fuel Cell (kW/yr)'] =  self.frpp_df['Fuel Cell (kW)'] * cur_dict['daily_operation'] * \
+            365. * (cur_dict['capacity_factor']/100.)
+        
+        # Finished
+        self.result_signal.emit(self.frpp_df)
+
+    def geothermal_enthalpy(self, geo_class:np.array)->np.array:
+        '''
+        Takes in an array of geothermal classes and
+        interpolates the inlet and outlet enthaly and 
+        returns delta(enthalpy).
+
+        Parameters
+        ----------
+        geo_class: np.array
+            - geothermal class
+
+        Returns
+        -------
+        delta_h: np.array
+            - the difference between inlet and outlet enthalpy
+        '''
+        well_temp = {1:300, 2:200, 3:160, 4:0, 5:0, 999:0}
+        enth_dict = {50:209, 60:251, 70:293, 80:334.9, 90:376.9, 100:419, 150:2746, 160:2757.6, 200:2804, 300:2749}
+
+        delta_h = np.zeros_like(geo_class)
+        out_enth = np.zeros_like(geo_class)
+        in_enth = np.zeros_like(geo_class)
+        in_temp = np.zeros_like(geo_class)
+        
+        out_temp = self.model_assump['geo_therm']['system']['turb_outlet_temp']
+        if out_temp in enth_dict.keys():
+            out_enth[:] = enth_dict[out_temp]
+        else:
+            # linear interplolate the enthalpy (outlet is bound between 50 and 100)
+            out_enth[:] = np.interp(out_temp, list(enth_dict.keys()), list(enth_dict.values()))
+
+        for qq,val in enumerate(geo_class):
+            in_enth[qq] = enth_dict[well_temp[val]]
+            in_temp[qq] = well_temp[val]
+
+        delta_h = in_enth - out_enth
+        out_temp =  np.ones_like(geo_class)
+        out_temp[:] = self.model_assump['geo_therm']['system']['turb_outlet_temp']
+        return delta_h, in_temp, out_temp
 
 
 class MainWindow(QMainWindow):
@@ -126,11 +328,19 @@ class MainWindow(QMainWindow):
         self.agency_energy_data = None
         self.agency_price_data = None
         self.output_folder = DATA_PATH
+        #self.threadpool = QThreadPool()
+        self.thread = QThread()
+        self.solar_power = None
+        self.solar_energy = None
+        self.solar_count = 0
+        self.solar_max = 0
 
         # Set defaults
         self.actionExport_Results.setEnabled(False)
         self.stackedWidget.setCurrentIndex(0)
         self.tabWidget.setCurrentIndex(0)
+        self.build_cfe_progressBar.setVisible(False)
+        self.time_left_label_label.setVisible(False)
 
     def set_newFRPP_path(self):
         """
@@ -456,7 +666,7 @@ class MainWindow(QMainWindow):
                 msg.setStandardButtons(QMessageBox.StandardButton.Ok)
                 msg.exec()
                 return
-            else:
+            else:                
                 self.agency_energy_data = agency_energy_data.loc[(agency_energy_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
         if not os.path.exists(os.path.join(DATA_PATH, "Agency_Energy_Price_Data.csv")):
@@ -480,142 +690,23 @@ class MainWindow(QMainWindow):
             else:
                 self.agency_price_data = agency_price_data.loc[(agency_price_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
-        ''' Solar Power '''
-        start = timeit.default_timer()
-        cur_dict = self.model_assump['solar']['system']        
-        # Calculate the A.C. Roof-top solar power  
-        dmy = np.zeros(self.frpp_df.shape[0])
-        dmy[:] = np.nan     
-
-        dmy2 = np.zeros(self.frpp_df.shape[0])
-        dmy2[:] = np.nan    
-        filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
-        for qq in np.where(filter_)[0]:
-            print(f"Processing Location {qq+1} of {len(dmy)}")               
-            if cur_dict['use_lat_tilt']:
-                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
-                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['precent_roof_avail'], tilt=self.frpp_df.iloc[qq]['Latitude'],
-                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])       
-            else:
-                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
-                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['precent_roof_avail'], tilt=cur_dict['tilt'],
-                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'])
-            solar_calc.analyze()
-            dmy[qq] = solar_calc.total
-            dmy2[qq] = solar_calc.dc_nameplate
-        self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
-        self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
-        stop = timeit.default_timer()
-        print('Time: ', stop - start)                  
-
-        # Calculate the A.C. Ground mounted Solar
-        dmy = np.zeros(self.frpp_df.shape[0])
-        dmy[:] = np.nan  
-        dmy2 = np.zeros(self.frpp_df.shape[0])
-        dmy2[:] = np.nan   
-        filter_ = ~self.frpp_df['Acres'].isna()
-        for qq in np.where(filter_)[0]:            
-            if cur_dict['use_lat_tilt']:
-                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
-                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['perc_land_used'], tilt=self.frpp_df.iloc[qq]['Latitude'],
-                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)       
-            else:
-                solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
-                                    self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
-                                    dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['perc_land_used'], tilt=cur_dict['tilt'],
-                                    azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)
-            solar_calc.analyze()
-            dmy[qq] = solar_calc.total
-            dmy2[qq] = solar_calc.dc_nameplate
-
-        self.frpp_df['Ground Solar Power'] = dmy.tolist()        
-        self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = dmy2.tolist()
-
-        ''' Wind Power '''
-        cur_dict = self.model_assump['wind']['system']
-        # Number of turbines on land
-        #                           (*N Defined by user between 5 and 8ish)
-        # --->  Primary         X <----  N*Turb Diam -----> X
-        #                       -
-        # --->  Wind            |
-        #                      2*Turb Diam                 
-        # --->  Direction       |  
-        #                       -
-        # --->                  X                           X <- Turbine
-        dmy = np.zeros(self.frpp_df.shape[0])
-        dmy[:] = np.nan         
-        filter_ = ~self.frpp_df['Annual Average Wind Speed (m/s)'].isna()
-        dmy[filter_] = np.floor(self.frpp_df[filter_]['Acres'] / (2*cur_dict['turbine_diameter']*\
-                                                    cur_dict['turbine_spacing'] * 0.000247105)) # convert to acres
-        dmy[np.where(dmy == 0)] = 1 # If it gets rounded down to 0 I think it should still be able to support 1
-        self.frpp_df['N Wind Turbines'] = dmy.tolist()
-        # Power (W) = (0.5 * Cp * rho * A * v^3) * N_Turbines
-        #   - Cp coefficient of performance
-        #   - rho density of the air in kg/m3
-        #   - A cross-sectional area of the wind in m2
-        #   - v velocity of the wind in m/s
-        wind_mod = cur_dict['fraction_of_average_wind_speed']
-        dmy = np.zeros(self.frpp_df.shape[0])
-        dmy[:] = np.nan          
-        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s)'].isna(), \
-                  np.logical_or(self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 25 , \
-                                self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod <= 3))  # Cut in/out speeds
-        dmy[filter_] = 0.0 
-        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s)'].isna(), \
-                  np.logical_and(self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod <= 25, \
-                                 self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 12))  # Power output is constant between these values (ie it cant spin any faster)
-        dmy[filter_] = 0.5 * cur_dict['power_coefficient'] * 1.293 * (np.pi * cur_dict['turbine_diameter']**2 / 4.) * \
-                                              12**3 * self.frpp_df[filter_]['N Wind Turbines'] * 0.001 
-        n_wind = filter_.sum()
-        filter_ = np.logical_and(~self.frpp_df['Annual Average Wind Speed (m/s)'].isna(), \
-                  np.logical_and(self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod <= 12, \
-                                 self.frpp_df['Annual Average Wind Speed (m/s)']*wind_mod > 3)) # Between these speeds the turbine speed is proportional to wind speed
-        dmy[filter_] = 0.5 * cur_dict['power_coefficient'] * 1.293 * (np.pi * cur_dict['turbine_diameter']**2 / 4.) * \
-                       (self.frpp_df[filter_]['Annual Average Wind Speed (m/s)']*wind_mod)**3 *\
-                       self.frpp_df[filter_]['N Wind Turbines'] * 0.001  
-        n_wind += filter_.sum()      
-        self.frpp_df['Wind Power (kW)'] = dmy.tolist()
-        self.frpp_df['Annual Wind Power (kWh/yr)'] = self.frpp_df['Wind Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+        self.toggle_cfe_running(True)
         
-        ''' Concentrating Solar '''
-        cur_dict = self.model_assump['conc_solar']['system']
-        # Explain
-        dmy = np.zeros(self.frpp_df.shape[0])
-        dmy[:] = np.nan 
-        filter_ = np.logical_and(self.frpp_df['Real Property Type'] == 'Land', self.frpp_df['Real Property Use'] == 'Vacant')
-        dmy[filter_] = (1.0 *(1000/cur_dict['avg_sun_hours'])*((cur_dict['perc_land_used']/100)*self.frpp_df[filter_]['Acres'] * 43560.))*\
-            (cur_dict['optical_eff']/100)*(cur_dict['elec_eff']/100)/1000.  # The 1.0 is 1 kWh/ft2/day of radiation. No idea why
-        # calculate
-        self.frpp_df['Concentrating Solar Power (kW)'] = dmy.tolist()
-        self.frpp_df['Annual Concentrating Solar Power (kWh)'] = self.frpp_df['Concentrating Solar Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+        build_model = buildCFEWorker(self.frpp_df.copy(), self.agency_energy_data.copy(), 
+                                   self.agency_price_data.copy(), self.model_assump)
+        build_model.moveToThread(self.thread)
+        self.thread.started.connect(build_model.build_cfe_model)
+        build_model.result_signal.connect(self.thread.quit)
+        build_model.result_signal.connect(build_model.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        build_model.result_signal.connect(self.handle_cfeTask_results)
+        build_model.progress_signal.connect(self.update_cfeTask_progress)
+        self.thread.finished.connect(self.finalize_frpp_df) 
+        self.thread.start()
+        QApplication.processEvents()
+        print("Thread starting")
 
-        ''' GeoThermal '''
-        cur_dict = self.model_assump['geo_therm']['system']
-        dmy = np.zeros(self.frpp_df.shape[0])
-        dmy[:] = np.nan  
-        filter_ = np.logical_and(~self.frpp_df['Geothermal_CLASS'].isna(), self.frpp_df['Geothermal_CLASS'] <=3)
-        enthalpy_diff, inlet_temp, outlet_temp = self.geothermal_enthalpy(self.frpp_df[filter_]['Geothermal_CLASS']) 
-        dmy[filter_] = (((np.pi*cur_dict['well_diameter']**2/4)*cur_dict['fluid_velocity']*cur_dict['fluid_density'])*\
-                         enthalpy_diff* (1-(outlet_temp+273)/(inlet_temp+273))) - \
-                         ((((np.pi*cur_dict['well_diameter']**2/4)*cur_dict['fluid_velocity']*cur_dict['fluid_density']\
-                         *9.81 *cur_dict['well_depth']/(cur_dict['overall_pump_efficiency']/100))*2)/1000)
-        self.frpp_df['Geothermal Power (kW)'] = dmy.tolist()
-        self.frpp_df['Annual Geothermal Power (kWh/yr)'] = self.frpp_df['Geothermal Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
-
-        ''' Hydrogen Fuel Cells '''
-        cur_dict = self.model_assump['hydrogen']['system']
-        self.frpp_df['Fuel Cell (kW)'] = (cur_dict['curr_density'] * cur_dict['cell_active_area'] * \
-                                          cur_dict['cell_voltage']) * cur_dict['N_stacks'] * 0.001
-        self.frpp_df['Annual Fuel Cell (kW/yr)'] =  self.frpp_df['Fuel Cell (kW)'] * cur_dict['daily_operation'] * \
-            365. * (cur_dict['capacity_factor']/100.)
-
+    def finalize_frpp_df(self):
         ''' Finally Sum the various renewables to find the total power per site '''
         # The following stipulations are used when calculating renewable potential (property use listed)
         # Rooftop Solar
@@ -760,7 +851,7 @@ class MainWindow(QMainWindow):
 
         self.setup_econ_page()
         self.build_econ_model()
-
+        self.toggle_cfe_running(False)
         self.actionExport_Results.setEnabled(True)
         self.stackedWidget.setCurrentIndex(2)
 
@@ -923,6 +1014,8 @@ class MainWindow(QMainWindow):
         # Restore default choices
         self.agency_comboBox.setCurrentIndex(0)
         self.pg1_progressBar.setValue(0)
+        self.build_cfe_progressBar.setVisible(False)
+        self.time_left_label_label.setVisible(False)
 
         # Move to the first page
         self.actionExport_Results.setEnabled(False)
@@ -959,7 +1052,7 @@ class MainWindow(QMainWindow):
                                 'Wind Power Built (kW)', 'Geothermal Power Built (kW)', 'Ground Solar Energy Built (kWh/yr)', 
                                 'Concentrating Solar Energy Built (kWh)', 'Wind Energy Built (kWh/yr)', 'Geothermal Energy Built (kWh/yr)', 
                                 'Total Power (kW)', 'Total Energy (kWh)']
-            if list(dummy.columns.values[1:]).sort() == required_headers.sort():
+            if list(dummy.columns.values[1:]).sort() != required_headers.sort():
                 msg = QMessageBox(self)
                 msg.setIcon(QMessageBox.Icon.Warning)
                 msg.setText("The provided csv did not match the required headers.\n\nMake sure you only load data that has been saved from the file/export function of this program.")
@@ -1627,46 +1720,38 @@ class MainWindow(QMainWindow):
 
         return valid, errors
 
-    def geothermal_enthalpy(self, geo_class:np.array)->np.array:
-        '''
-        Takes in an array of geothermal classes and
-        interpolates the inlet and outlet enthaly and 
-        returns delta(enthalpy).
+    def update_cfeTask_progress(self, val, run_label):           
+        self.build_cfe_progressBar.setValue(val)        
+        self.time_left_label_label.setText(f"{run_label} is being calculated")
 
-        Parameters
-        ----------
-        geo_class: np.array
-            - geothermal class
+    def handle_cfeTask_results(self, frpp_df):
+        logging.info(f"Log from the handle_cfeTask_results. Current solarcount is {self.solar_count}")
+        self.frpp_df = frpp_df.copy()
 
-        Returns
-        -------
-        delta_h: np.array
-            - the difference between inlet and outlet enthalpy
-        '''
-        well_temp = {1:300, 2:200, 3:160, 4:0, 5:0, 999:0}
-        enth_dict = {50:209, 60:251, 70:293, 80:334.9, 90:376.9, 100:419, 150:2746, 160:2757.6, 200:2804, 300:2749}
-
-        delta_h = np.zeros_like(geo_class)
-        out_enth = np.zeros_like(geo_class)
-        in_enth = np.zeros_like(geo_class)
-        in_temp = np.zeros_like(geo_class)
-        
-        out_temp = self.model_assump['geo_therm']['system']['turb_outlet_temp']
-        if out_temp in enth_dict.keys():
-            out_enth[:] = enth_dict[out_temp]
+    def toggle_cfe_running(self, running:bool):
+        if running:
+            self.energy_proj_lineEdit.setReadOnly(True)
+            self.cur_cfe_lineEdit.setReadOnly(True)
+            self.AEG_lineEdit.setReadOnly(True)
+            self.CB_oper_lineEdit.setReadOnly(True)
+            self.ren_oper_lineEdit.setReadOnly(True)
+            self.oper_days_lineEdit.setReadOnly(True)
+            self.model_assumpt_pushButton.setEnabled(False)
+            self.build_CFE_pushButton.setEnabled(False)
+            self.build_cfe_progressBar.setVisible(True)
+            self.time_left_label_label.setVisible(True)
         else:
-            # linear interplolate the enthalpy (outlet is bound between 50 and 100)
-            out_enth[:] = np.interp(out_temp, list(enth_dict.keys()), list(enth_dict.values()))
-
-        for qq,val in enumerate(geo_class):
-            in_enth[qq] = enth_dict[well_temp[val]]
-            in_temp[qq] = well_temp[val]
-
-        delta_h = in_enth - out_enth
-        out_temp =  np.ones_like(geo_class)
-        out_temp[:] = self.model_assump['geo_therm']['system']['turb_outlet_temp']
-        return delta_h, in_temp, out_temp
-
+            self.energy_proj_lineEdit.setReadOnly(False)
+            self.cur_cfe_lineEdit.setReadOnly(False)
+            self.AEG_lineEdit.setReadOnly(False)
+            self.CB_oper_lineEdit.setReadOnly(False)
+            self.ren_oper_lineEdit.setReadOnly(False)
+            self.oper_days_lineEdit.setReadOnly(False)
+            self.model_assumpt_pushButton.setEnabled(True)
+            self.build_CFE_pushButton.setEnabled(True)
+            self.build_cfe_progressBar.setVisible(False)
+            self.time_left_label_label.setVisible(False)
+ 
     def populate_report(self):
         n_solar_roof = np.sum(~self.frpp_df['est_rooftop_area_sqft'].isna())
         n_solar_grnd = np.sum(~self.frpp_df['Acres'].isna())

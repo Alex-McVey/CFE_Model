@@ -5,7 +5,9 @@ import pandas as pd
 import struct
 import datetime
 import numpy as np
-import multiprocessing
+from timeit import timeit
+from cProfile import Profile
+from pstats import SortKey, Stats
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 DATA_PATH = PROJECT_PATH / "data"
@@ -70,6 +72,7 @@ class solar_pv:
         self.dc_ac = dc_ac
         self.invert_eff = invert_eff/100
         self.tilt = tilt 
+        self.cos_rad_tilt = np.cos(np.radians(self.tilt))
         self.azimuth = azimuth
         if mod_type == 0:
             self.nom_eff = 0.16 # Standard
@@ -158,7 +161,7 @@ class solar_pv:
         data = data.set_index('datetime')
         
         self.solar_data = data
-        self.metadata = metadata
+        self.metadata = metadata        
 
     def find_closest_station(self, map_dict):
         min_dist = 1.0e20
@@ -238,10 +241,10 @@ class solar_pv:
         self.solar_data['Solar Zenith Angle (deg)'] = np.rad2deg(np.arccos(np.sin(np.radians(self.lat))*np.sin(np.radians(self.solar_data['Sun Declin (deg)']))\
                                                         +np.cos(np.radians(self.lat))*np.cos(np.radians(self.solar_data['Sun Declin (deg)']))*\
                                                         np.cos(np.radians(self.solar_data['Hour Angle (deg)']))))
+        self.solar_data['Solar Zenith Angle (rad)'] = np.radians(self.solar_data['Solar Zenith Angle (deg)'])        
 
     def calculate_solar_power(self):
         '''
-
         Citations
         [1] Kalogirou, S. A. (2014). Solar energy engineering : processes and systems. Academic Press.
         [2] “Perez Sky Diffuse Model” GitHub, NREL, 10 June 1998, https://github.com/NREL/ssc/blob/6cddbd76efe4ab20f1670718f82005a5e306cd2e/shared/lib_irradproc.cpp#L1575. Accessed 25 Sept. 2023.
@@ -266,15 +269,11 @@ class solar_pv:
                                          np.cos(L)*np.cos(delta)*np.cos(h)*np.cos(beta) +
                                          np.sin(L)*np.cos(delta)*np.cos(h)*np.sin(beta)*np.cos(Zs) +
                                          np.cos(delta)*np.sin(h)*np.sin(beta)*np.sin(Zs)))
-        self.solar_power = pd.DataFrame({'Incident Angle': inc_angle})
-        
-        # Perez Sky Diffuse calculation [2]       
-        radiation = np.zeros((self.solar_data.shape[0],3)) 
-        for qq in range(self.solar_data.shape[0]):
-            rad = self.perez(qq)
-            radiation[qq,0] = rad[0]
-            radiation[qq,1] = rad[1]
-            radiation[qq,2] = rad[2]   
+        self.solar_power = pd.DataFrame({'Incident Angle': inc_angle})        
+        self.solar_data['incident_angle_cos'] = np.cos(np.radians(self.solar_power['Incident Angle']))
+
+        # Perez Sky Diffuse calculation [2]   
+        radiation = self.perez() 
         self.solar_power['Beam'] = radiation[:,0].tolist()
         self.solar_power['Total Sky Diffuse'] = radiation[:,1].tolist()
         self.solar_power['Ground Diffuse'] = radiation[:,2].tolist()
@@ -300,74 +299,72 @@ class solar_pv:
             ac_pow[np.where(ac_pow > self.dc_nameplate/self.dc_ac)] = self.dc_nameplate/self.dc_ac
         ac_pow[np.where(ac_pow < 0)] = 0.0
         self.solar_power['AC Power'] = ac_pow.tolist()               
-
-    def perez(self, i)->list:
+                
+    def perez(self)->np.ndarray:
         # Perez Sky Diffuse calculation [2]
-        F11R = [-0.0083117, 0.1299457, 0.3296958, 0.5682053, 0.8730280, 1.1326077, 1.0601591, 0.6777470]
-        F12R = [0.5877285, 0.6825954, 0.4868735, 0.1874525, -0.3920403, -1.2367284, -1.5999137, -0.3272588]
-        F13R = [-0.0620636, -0.1513752, -0.2210958, -0.2951290, -0.3616149, -0.4118494, -0.3589221, -0.2504286]
-        F21R = [-0.0596012, -0.0189325, 0.0554140, 0.1088631, 0.2255647, 0.2877813, 0.2642124, 0.1561313]
-        F22R = [0.0721249, 0.0659650, -0.0639588, -0.1519229, -0.4620442, -0.8230357, -1.1272340, -1.3765031]
-        F23R = [-0.0220216, -0.0288748, -0.0260542, -0.0139754, 0.0012448, 0.0558651, 0.1310694, 0.2506212]
+        F11R = np.array([-0.0083117, 0.1299457, 0.3296958, 0.5682053, 0.8730280, 1.1326077, 1.0601591, 0.6777470])
+        F12R = np.array([0.5877285, 0.6825954, 0.4868735, 0.1874525, -0.3920403, -1.2367284, -1.5999137, -0.3272588])
+        F13R = np.array([-0.0620636, -0.1513752, -0.2210958, -0.2951290, -0.3616149, -0.4118494, -0.3589221, -0.2504286])
+        F21R = np.array([-0.0596012, -0.0189325, 0.0554140, 0.1088631, 0.2255647, 0.2877813, 0.2642124, 0.1561313])
+        F22R = np.array([0.0721249, 0.0659650, -0.0639588, -0.1519229, -0.4620442, -0.8230357, -1.1272340, -1.3765031])
+        F23R = np.array([-0.0220216, -0.0288748, -0.0260542, -0.0139754, 0.0012448, 0.0558651, 0.1310694, 0.2506212])
         EPSBINS = [1.065, 1.23, 1.5, 1.95, 2.8, 4.5, 6.2]
-        out = [0.0, 0.0, 0.0]
-        solar_data = self.solar_data.iloc[i]
-        if solar_data['DNI'] < 0.0:
-            solar_data['DNI'] = 0.0
         
-        if solar_data['Solar Zenith Angle (deg)'] < 0.0 or np.radians(solar_data['Solar Zenith Angle (deg)']) > 1.5271631:
-            # Zenith not between 0 and 87.5 deg 
-            if solar_data['DHI'] < 0.0:
-                solar_data['DHI'] = 0.0
-            if np.cos(np.radians(self.solar_power.iloc[i]['Incident Angle'])) > 0.0 and np.radians(solar_data['Solar Zenith Angle (deg)']) < 1.5707963:
-                # Zen between 87.5 and 90 and incident < 90 deg 
-                out[0] = solar_data['DNI'] * np.cos(np.radians(self.solar_power.iloc[i]['Incident Angle']))
-                out[2] = solar_data['DHI'] * (1.0 + np.cos(np.radians(self.tilt))) / 2.0
-                return out
-            else:
-                # Isotropic diffuse only
-                out[2] = solar_data['DHI'] * (1.0 + np.cos(np.radians(self.tilt))) / 2.0
-                return out
-        else:
-            # Zen between 0 and 87.5 deg
-            cz = np.cos(np.radians(solar_data['Solar Zenith Angle (deg)']))
-            zh = cz
-            if cz < 0.0871557: zh = 0.0871557
-            if solar_data['DHI'] <= 0.0:
-                # Diffuse is zero or less
-                if np.cos(np.radians(self.solar_power.iloc[i]['Incident Angle'])) > 0.0:
-                    # Incident < 90 deg
-                    out[0] = solar_data['DNI'] * np.cos(np.radians(self.solar_power.iloc[i]['Incident Angle']))
-                    return out
-                else:
-                    return out
-            else:
-                # Diffuse is greater than zero
-                air_mass = 1.0 / (cz + 0.15 * pow(93.9 - solar_data['Solar Zenith Angle (deg)'], -1.253))
-                delta = solar_data['DHI'] * air_mass / 1367.0
-                t = pow(solar_data['Solar Zenith Angle (deg)'], 3.0)
-                eps = (solar_data['DNI'] + solar_data['DHI']) / solar_data['DHI']
-                eps = (eps + t * 0.000005534) / (1.0 + t * 0.000005534)
-                qq = 0
-                while qq < 7 and eps > EPSBINS[qq]:
-                    qq += 1
-                x = F11R[qq] + F12R[qq] * delta + F13R[qq] * np.radians(solar_data['Solar Zenith Angle (deg)'])
-                f1 = max(0, x)
-                f2 = F21R[qq] + F22R[qq] * delta + F23R[qq] * np.radians(solar_data['Solar Zenith Angle (deg)'])
-                if np.cos(np.radians(self.solar_power.iloc[i]['Incident Angle'])) < 0.0:
-                    zc = 0.0
-                else:
-                    zc = np.cos(np.radians(self.solar_power.iloc[i]['Incident Angle']))
+        self.solar_data.loc[np.where(self.solar_data['DNI'] < 0.0)]['DNI'] = 0.0
 
-                a = solar_data['DHI'] * (1 - f1) * (1.0 + np.cos(np.radians(self.tilt))) / 2.0 # isotropic diffuse
-                b = solar_data['DHI'] * f1 * zc / zh # circumsolar diffuse
-                c = solar_data['DHI'] * f2 * np.sin(np.radians(self.tilt)) # horizon brightness term
+        filter1 = np.where(np.logical_and(
+            np.logical_or(self.solar_data['Solar Zenith Angle (deg)'] < 0.0, self.solar_data['Solar Zenith Angle (rad)'] > 1.5271631), 
+            np.logical_and(self.solar_data['incident_angle_cos'] > 0.0, self.solar_data['Solar Zenith Angle (rad)'] < 1.5707963)
+            ))[0]
+        dmy = np.where(np.logical_or(self.solar_data['Solar Zenith Angle (deg)'] < 0.0, self.solar_data['Solar Zenith Angle (rad)'] > 1.5271631))[0]
+        filter2 = [i for i in dmy if i not in filter1]
+        temp = self.solar_data['DNI'].values        
+        temp[dmy] = np.where(self.solar_data.iloc[dmy]['DNI'] < 0.0, 0.0, self.solar_data.iloc[dmy]['DNI'])
+        self.solar_data['DNI'] = temp.tolist()
+        filter3 = np.where(np.logical_and(
+            np.logical_and(self.solar_data['Solar Zenith Angle (deg)'] > 0.0, self.solar_data['Solar Zenith Angle (rad)'] < 1.5271631), 
+            self.solar_data['DHI'] <= 0.0
+            ))[0]
+        dmy = np.where(np.logical_and(self.solar_data['Solar Zenith Angle (deg)'] > 0.0, self.solar_data['Solar Zenith Angle (rad)'] < 1.5271631))[0]
+        filter4 = [i for i in dmy if i not in filter3]             
 
-                out[0] = solar_data['DNI'] * zc # Beam
-                out[1] = a + b + c # total sky diffuse
-                out[2] = 0.2 * (solar_data['DNI'] * cz + solar_data['DHI']) * \
-                    (1.0 - np.cos(np.radians(self.tilt))) / 2.0  # ground diffuse    
-                return out
+        cz = np.cos(np.radians(self.solar_data['Solar Zenith Angle (deg)']))
+        zh = np.maximum(cz, 0.0871557)
+
+        air_mass = 1.0 / (cz + 0.15 * pow(93.9 - self.solar_data['Solar Zenith Angle (deg)'], -1.253))
+        delta = self.solar_data['DHI'] * air_mass / 1367.0
+        t = self.solar_data['Solar Zenith Angle (deg)']**3.0
+        eps = (self.solar_data['DNI'] + self.solar_data['DHI']) / self.solar_data['DHI']
+        eps = (eps + t * 0.000005534) / (1.0 + t * 0.000005534)
+
+        qq = np.searchsorted(EPSBINS, eps, side='right')
+
+        x = F11R[qq] + F12R[qq] * delta + F13R[qq] * self.solar_data['Solar Zenith Angle (rad)']
+        f1 = np.maximum(0, x)
+        f2 = F21R[qq] + F22R[qq] * delta + F23R[qq] * self.solar_data['Solar Zenith Angle (rad)']
+
+        zc = np.where(self.solar_data['incident_angle_cos'] < 0.0, 0.0, self.solar_data['incident_angle_cos'])
+
+        a = self.solar_data['DHI'] * (1 - f1) * (1.0 + self.cos_rad_tilt) / 2.0 # isotropic diffuse
+        b = self.solar_data['DHI'] * f1 * zc / zh # circumsolar diffuse
+        c = self.solar_data['DHI'] * f2 * np.sin(np.radians(self.tilt)) # horizon brightness term
+
+        out = np.zeros((self.solar_data.shape[0], 3))
+        # Option 1
+        out[filter1, 0] = self.solar_data.iloc[filter1]['DNI'] * self.solar_data.iloc[filter1]['incident_angle_cos']
+        out[filter1, 2] = self.solar_data.iloc[filter1]['DHI'] * (1.0 + self.cos_rad_tilt) / 2.0 
+        # Option 2
+        out[filter2, 2] = self.solar_data.iloc[filter2]['DHI'] * (1.0 + self.cos_rad_tilt) / 2.0
+        # Option 3
+        out[filter3, 0] = self.solar_data.iloc[filter3]['DNI'] * self.solar_data.iloc[filter3]['incident_angle_cos']
+        # Option 4
+        out[filter4, 0] = self.solar_data.iloc[filter4]['DNI'] * zc[filter4] # Beam
+        out[filter4, 1] = a[filter4] + b[filter4] + c[filter4] # total sky diffuse
+        out[filter4, 2] = 0.2 * (self.solar_data.iloc[filter4]['DNI'] * cz[filter4] + self.solar_data.iloc[filter4]['DHI']) * \
+                    (1.0 - self.cos_rad_tilt) / 2.0  # ground diffuse 
+        
+        return out
+
 
     def post_process(self):
         n_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
@@ -386,7 +383,16 @@ class solar_pv:
 
 if __name__ == "__main__":    
     # Read required Lat/Lon
-    solar_calc = solar_pv(38.886777, -77.02997, 374686.66666)
-    solar_calc.analyze()
-    
+    # solar_calc = solar_pv(38.886777, -77.02997, 374686.66666)
+    # solar_calc.analyze()
+    total_time = timeit("solar_pv(38.886777, -77.02997, 374686.66666).analyze()", number=25, globals=globals())
+    print(f"Average time is {total_time / 25:.2f} seconds")
+    # with Profile() as profile:
+    #     print(f"{solar_pv(38.886777, -77.02997, 374686.66666).analyze() = }")
+    #     (
+    #         Stats(profile)
+    #         .strip_dirs()
+    #         .sort_stats(SortKey.CALLS)
+    #         .print_stats()
+    #     )
    
