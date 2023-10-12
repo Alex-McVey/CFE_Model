@@ -1,10 +1,20 @@
 import numpy as np
 
+cur_dict = {
+            "well_diameter": 0.25,
+            "fluid_velocity": 2.0,
+            "well_depth": 1500.0,
+            "turb_outlet_temp": 60.0,
+            "capacity_factor": 90.0,
+            "fluid_density": 1000.0,
+            "overall_pump_efficiency": 70.0
+        }
+
 # Defaults
-geothermal_class = 2
-plant_type = "flash"
-if geothermal_class == 1:
-    plant_type = "binary"
+geothermal_class = 1
+plant_type = "binary"
+if geothermal_class in [1,2]:
+    plant_type = "flash"
 t_amb = 50. # fahrenheit
 p_amb = 14.7 # psia
 turbine_eff = 0.8 # D32
@@ -29,7 +39,7 @@ steam_properties = [[0.0, -2.55175E-12, 2.41218E-08, -9.19096E-06, 0.001969537, 
                     [-9.0287E-10, 3.4638E-07, -5.4475E-05, 0.00456759, -0.226287, 7.7497, 134.575],                     # T ft^3/lb
                     [-5.62597E-18, 1.09949E-14, -9.73487E-12, 5.19477E-09, -2.64887E-06, 0.000829554, 0.30074]]         # k btu/hr-ft-F
 
-well_temp = {1:572, 2:392, 3:320, 4:0, 5:0, 999:0}
+well_temp = {1:572, 2:392, 3:320., 4:0, 5:0, 999:0} 
 tSource = well_temp[geothermal_class] # fahrenheit
 t_c = (tSource-32)/1.8
 
@@ -59,14 +69,15 @@ vSink = steam_properties[3][0]*tSink**6 + steam_properties[3][1]*tSink**5 + stea
 availableEnergy = ((hSource-hSink)-(tSink+460)*(sSource-sSink))/3.413 # w-hr/lb  | *3.413 -> btu/lb
             # maximum power that could be produced with IDEAL power cycle
 
-# flow_rate = 150*(1*60*rho/7.4805) # lb/hour     # cur_dict['flow_rate']*(1*60*rho/7.4805)
-#             # 7.4805 gal/cft
-
-''' Total Pumping Power '''
+''' Flash Plant Performance '''
 # Fraction of inlet GF Injection 
 if plant_type == "binary":
     frac_inlet = 1
+    second_law_eff = 0.0000000550046*t_c**3 - 0.0000407813*\
+                      t_c**2 + 0.0101746*t_c - 0.413853
 else:
+    second_law_eff = -0.0000000000866018*t_c**4 + 0.000000179053*t_c**3 - \
+        0.000105902*t_c**2 + 0.0248737*t_c - 1.66615
     bin1 = [125, 325, 675]
     bin2 = [2, 20, 200, 1000]
     tHpEst = tSource-0.5*(tSource - 212) # T52
@@ -209,9 +220,6 @@ else:
     qq = np.searchsorted(bin1, tCond, side='right')        
     ncg_Ptotal = ((0.0000825*ncg_level+0.15)*0.49) + p_CondSat_table[qq](tCond) # D154/D169
     ncg_Pratio = np.exp(np.log(p_amb/ncg_Ptotal)/3) # per stage D155
-    
-    # D156 = ncg_flow
-    # D65 = T55 + 1  pHP + 1 
 
     # NCG Removal Stage 1 160-175
     ncg_stage1_Pinter1 = ncg_Pratio*ncg_Ptotal # D160
@@ -324,8 +332,192 @@ else:
     evaporativeWaterLoss = (a*t_wetbulb**3+b*t_wetbulb**2+c*t_wetbulb+d)*qRejectedTower/1000000 # D130    
     loss_in_NCG_removal = steam_leaving_stage2*mw_H2O # lb/hour D132
     fraction_gf_flow_not_injected = (evaporativeWaterLoss+drift+loss_in_NCG_removal)/1000.0 # D136
-    frac_inlet = 1-fraction_gf_flow_not_injected # 
-    print()
+    frac_inlet = 1-fraction_gf_flow_not_injected     
+
+''' Total Pumping Power '''
+
+rho_amb = 1/(steam_properties[3][0]*t_amb**6 + steam_properties[3][1]*t_amb**5 + steam_properties[3][2]*t_amb**4\
+            + steam_properties[3][3]*t_amb**3 + steam_properties[3][4]*t_amb**2 + steam_properties[3][5]*t_amb + steam_properties[3][6]) # lb/cft
+g = 32.174 # ft/s^2  G17
+production_depth = cur_dict['well_depth']*3.28084 # G13/G15
+dT = (((tSource-t_amb)-32)/1.8)/(cur_dict['well_depth'])# F/ft  
+t_correction = 30.796*t_c**-0.552
+
+p_hydrostaticProd = ((p_amb/14.50377)+(1/0.000000000464)*(np.exp(((rho_amb*16.01846)*
+                    9.807*0.000000000464*(cur_dict['well_depth']-0.5*(0.0009/t_correction)*
+                    dT*cur_dict['well_depth']**2))/100000)-1))*14.50377# G14/G16/G195
+flow_per_Production_Well = 873029.52 # lb/hour G19/G347
+productivityIndex_ProdWell = 2500. # lb/hour-psi G20/G26
+drawdown = flow_per_Production_Well/productivityIndex_ProdWell # psi G21
+
+# flow_ration_Prod2Inj_Well = 0.75 # G23
+flow_per_InjWell = flow_per_Production_Well/0.75 # lb/hour G25/G65
+buildup = flow_per_InjWell/productivityIndex_ProdWell # psi G27
+
+# Production well head pressure/pump suction
+prodWellHead_Temp = tSource-(1.23/production_depth)*production_depth # F G30/G198
+prodWellHead_Psat = steam_properties[0][0]*prodWellHead_Temp**6 + steam_properties[0][1]*prodWellHead_Temp**5 +\
+                    steam_properties[0][2]*prodWellHead_Temp**4 + steam_properties[0][3]*prodWellHead_Temp**3 + \
+                    steam_properties[0][4]*prodWellHead_Temp**2 + steam_properties[0][5]*prodWellHead_Temp + steam_properties[0][6]# psia G32/G200
+prodWellHead_excess_pres = 50.0 # psia G33
+prodWellHead_Pres = prodWellHead_Psat+prodWellHead_excess_pres # psia G34
+
+# Injection well head pressure/pump suction
+injWell_dP_Binary = 40. # psid G37
+injWell_Pflash = 15.71 # psia G38
+if plant_type == "binary":
+    injWell_P = prodWellHead_Pres-injWell_dP_Binary
+    tR_bin = 1+(-0.002954*t_c - 0.121503)*(availableEnergy/(((hSource-hSink)-(tSink+460)*(sSource-sSink))/3.413))
+    injWell_T = max(((t_c+273)*tR_bin)-273, ((tAmphSiO2*1.8+32 +1)-32)/1.8)*1.8+32 # F G40
+else:
+    injWell_P = injWell_Pflash # psia G39
+    injWell_T = max(tAmphSiO2, (0.897*(t_c+273)-57)-273)*1.8+32 # F G40  OUT!G701  ->  Geofluid H96
+injWell_rho = 1/(steam_properties[3][0]*injWell_T**6 + steam_properties[3][1]*injWell_T**5 + steam_properties[3][2]*injWell_T**4\
+             + steam_properties[3][3]*injWell_T**3 + steam_properties[3][4]*injWell_T**2 + steam_properties[3][5]*injWell_T + steam_properties[3][6]) # lb/cft G42
+
+# Friction injection casing
+diameter = 12.5/12 # ft G68/G206
+fric_casing_A = np.pi*diameter**2/4 # sqft G69
+length_interval = 3937.0 # ft G70 !The lookup table for this is unreachable which means we can't change well depth
+casing_surf_roughness = 0.00015 # ft G71
+injWell_dT = 1.13/length_interval # F/ft G45
+fric_casing_T = injWell_T+0.5*injWell_dT*0.75*length_interval # F G72
+fric_casing_Psat = steam_properties[0][0]*fric_casing_T**6 + steam_properties[0][1]*fric_casing_T**5 +\
+                   steam_properties[0][2]*fric_casing_T**4 + steam_properties[0][3]*fric_casing_T**3 + \
+                   steam_properties[0][4]*fric_casing_T**2 + steam_properties[0][5]*fric_casing_T + steam_properties[0][6]# psia G73
+fric_casing_visc = 407.22*fric_casing_T**-1.194/3600 # lb/ft-s G74
+fric_casing_rho = 1/(steam_properties[3][0]*fric_casing_T**6 + steam_properties[3][1]*fric_casing_T**5 + steam_properties[3][2]*fric_casing_T**4\
+             + steam_properties[3][3]*fric_casing_T**3 + steam_properties[3][4]*fric_casing_T**2 + steam_properties[3][5]*fric_casing_T + steam_properties[3][6]) # lb/cft G75
+rhoXhead = length_interval*fric_casing_rho/144 # psi G76
+pstar_psat = 0.5*(rhoXhead+injWell_P)/fric_casing_Psat # G77
+fric_casing_flow = flow_per_InjWell/(3600*fric_casing_rho) # cft/s G80
+fric_casing_vel = fric_casing_flow/fric_casing_A # fps G81
+fric_casing_rho*= (1+(7.15037E-19*fric_casing_T**5.91303)*(pstar_psat-1))
+fric_casing_visc*= (1+(4.02401E-18*fric_casing_T**5.736882)*(pstar_psat-1))
+fric_casing_Rew = diameter*fric_casing_vel*fric_casing_rho/fric_casing_visc # G82
+serghide_a = -2*np.log10((casing_surf_roughness/diameter)/3.7+12/fric_casing_Rew) # G84
+serghide_v = -2*np.log10((casing_surf_roughness/diameter)/3.7+2.51*serghide_a/fric_casing_Rew) # G85
+serghide_c = -2*np.log10((casing_surf_roughness/diameter)/3.7+2.51*serghide_v/fric_casing_Rew) # G86
+friction_factor = (serghide_a-(serghide_v-serghide_a)**2/(serghide_c-2*serghide_v+serghide_a))**-2 # G87/G88
+friction_head_loss = (((friction_factor*1/diameter)*(fric_casing_vel**2)/(2*g))*length_interval)*fric_casing_rho/144 # bar G91
+pBottomUpperInterval = injWell_P+fric_casing_rho*length_interval/144-friction_head_loss # psi G92
+
+# injection pump
+intermediate_int2_T = injWell_T+injWell_dT*0.75*(length_interval+0.5*0) # F G99
+intermediate_int2_psat = steam_properties[0][0]*intermediate_int2_T**6 + steam_properties[0][1]*intermediate_int2_T**5 +\
+                         steam_properties[0][2]*intermediate_int2_T**4 + steam_properties[0][3]*intermediate_int2_T**3 + \
+                         steam_properties[0][4]*intermediate_int2_T**2 + steam_properties[0][5]*intermediate_int2_T + steam_properties[0][6] # G100
+intermediate_int2_rho = 1/(steam_properties[3][0]*intermediate_int2_T**6 + steam_properties[3][1]*intermediate_int2_T**5 +\
+                           steam_properties[3][2]*intermediate_int2_T**4 + steam_properties[3][3]*intermediate_int2_T**3 + \
+                           steam_properties[3][4]*intermediate_int2_T**2 + steam_properties[3][5]*intermediate_int2_T + \
+                           steam_properties[3][6]) # lb/cft G102
+intermediate_int2_rho_corr = 1+(7.15037E-19*intermediate_int2_T**5.91303)*\
+                             (((pBottomUpperInterval+0.5*0)/intermediate_int2_psat)-1)# G105
+bottom_intermediate_intervalP2 = pBottomUpperInterval+0*intermediate_int2_rho*\
+                                 intermediate_int2_rho_corr/144 # G119
+
+# Injection Interval 
+bottom_intermediate_intervalP3 = bottom_intermediate_intervalP2 # G146
+injInterval_D = 12.25/12 # ft G149
+injInterval_T = injWell_T+injWell_dT*0.75*(length_interval+0+0+0.5*984.2) # F G153
+injInterval_psat = steam_properties[0][0]*injInterval_T**6 + steam_properties[0][1]*injInterval_T**5 +\
+                   steam_properties[0][2]*injInterval_T**4 + steam_properties[0][3]*injInterval_T**3 + \
+                   steam_properties[0][4]*injInterval_T**2 + steam_properties[0][5]*injInterval_T + steam_properties[0][6] # psia G154
+injInterval_visc = 407.22*injInterval_T**-1.194/3600 # lb/ft-s G155
+injInterval_rho = 1/(steam_properties[3][0]*injInterval_T**6 + steam_properties[3][1]*injInterval_T**5 +\
+                     steam_properties[3][2]*injInterval_T**4 + steam_properties[3][3]*injInterval_T**3 + \
+                     steam_properties[3][4]*injInterval_T**2 + steam_properties[3][5]*injInterval_T + \
+                     steam_properties[3][6]) # lb/cft G156
+injInterval_rho_head = 984.2*injInterval_rho/144 # G157
+injInterval_P_Psat = (bottom_intermediate_intervalP3+0.5*injInterval_rho_head)/injInterval_psat # psia G158
+injInterval_rho_corr = 1+(7.15037E-19*injInterval_T**5.91303)*(
+                        ((bottom_intermediate_intervalP3+0.5*(984.2*injInterval_rho/144))/
+                         injInterval_psat)-1) # G159
+injInterval_mu_corr = 1+(4.02401E-18*injInterval_T**5.736882)*(injInterval_P_Psat-1) # G160
+injInterval_flow = flow_per_InjWell/(3600*injInterval_rho*injInterval_rho_corr) # fps G161
+injInterval_velo = injInterval_flow/(np.pi*injInterval_D**2/4) # fps G162
+injInterval_Rew = injInterval_D*injInterval_velo*injInterval_rho*injInterval_rho_corr/(injInterval_visc*injInterval_mu_corr) # G163
+serghide_a = -2*np.log10((0.02/injInterval_D)/3.7+12/injInterval_Rew) # G165
+serghide_v = -2*np.log10((0.02/injInterval_D)/3.7+2.51*serghide_a/injInterval_Rew) # G166
+serghide_c = -2*np.log10((0.02/injInterval_D)/3.7+2.51*serghide_v/injInterval_Rew) # G167
+injInterval_friction_factor = (serghide_a-(serghide_v-serghide_a)**2/(serghide_c-2*serghide_v+serghide_a))**-2 # G169
+injInterval_friction_head_loss = (((injInterval_friction_factor*1/injInterval_D)*\
+                                   (injInterval_velo**2)/(2*g))*984.2)*injInterval_rho*injInterval_rho_corr/144 # psi G172
+bottom_hole_pressure_injection_well = bottom_intermediate_intervalP3+injInterval_rho*injInterval_rho_corr*984.2/144-injInterval_friction_head_loss # psi G174
+injectPump_excessP = bottom_hole_pressure_injection_well-p_hydrostaticProd # psi G180
+injection_pump_head_used = -injectPump_excessP+buildup+1 # G183
 
 
-excess_pres_at_well_head = 50.0 # psi
+# Production Pumping Bottom of Hole
+prodWell_BottomP = p_hydrostaticProd-drawdown # psia G196
+prodWell_BottomDP = prodWell_BottomP-(prodWellHead_Psat+prodWellHead_excess_pres) # psia G202
+t_avg = 320-0.5*injWell_dT*984.2 # F G211
+below_pump_rho = 1/(steam_properties[3][0]*t_avg**6 + steam_properties[3][1]*t_avg**5 + steam_properties[3][2]*t_avg**4\
+             + steam_properties[3][3]*t_avg**3 + steam_properties[3][4]*t_avg**2 + steam_properties[3][5]*t_avg + steam_properties[3][6]) # lb/cft G213
+below_pump_Psat = steam_properties[0][0]*t_avg**6 + steam_properties[0][1]*t_avg**5 +\
+                  steam_properties[0][2]*t_avg**4 + steam_properties[0][3]*t_avg**3 + \
+                  steam_properties[0][4]*t_avg**2 + steam_properties[0][5]*t_avg + steam_properties[0][6] # psia G212
+below_pump_P_Psat = (prodWell_BottomP-0.5*below_pump_rho*984.2/144)/below_pump_Psat # G214
+below_pump_rho *= 1+(7.15037E-19*t_avg**5.91303)*(below_pump_P_Psat-1) # lb/cft G217
+
+blow_pump_diameter = 12.25/12 # ft G206
+below_pump_flow = (flow_per_Production_Well/below_pump_rho)/3600 # cft/s G218
+below_pump_vel = below_pump_flow/(np.pi*blow_pump_diameter**2/4) # fps G219
+below_pump_visc = (1+(4.02401E-18*t_avg**5.736882)*(below_pump_P_Psat-1))*407.22*t_avg**-1.194/3600 # fps G220
+below_pump_Rew = blow_pump_diameter*below_pump_vel*below_pump_rho/below_pump_visc # G221
+serghide_a = -2*np.log10((0.02/blow_pump_diameter)/3.7+12/below_pump_Rew) # G223
+serghide_v = -2*np.log10((0.02/blow_pump_diameter)/3.7+2.51*serghide_a/below_pump_Rew) # G224
+serghide_c = -2*np.log10((0.02/blow_pump_diameter)/3.7+2.51*serghide_v/below_pump_Rew) # G225
+below_friction_factor = (serghide_a-(serghide_v-serghide_a)**2/(serghide_c-2*serghide_v+serghide_a))**-2 # G227
+below_friction_head_loss = (((below_friction_factor*1/blow_pump_diameter)*(below_pump_vel**2)/(2*g))*984.2)*below_pump_rho/144 # bar G230
+pTopProdZone = prodWell_BottomP-below_friction_head_loss-below_pump_rho*984.2/144 # psi G231
+
+# Upper Interval Below Pump # 288
+uibp_diameter = 12.5/12 # ft G290
+uibp_T = tSource-984.2*injWell_dT # F G292
+distance2surface = production_depth-984.2 # ft G293
+uibp_tavg = uibp_T-0.5*injWell_dT*distance2surface # G295
+uibp_Psat = steam_properties[0][0]*uibp_tavg**6 + steam_properties[0][1]*uibp_tavg**5 +\
+            steam_properties[0][2]*uibp_tavg**4 + steam_properties[0][3]*uibp_tavg**3 + \
+            steam_properties[0][4]*uibp_tavg**2 + steam_properties[0][5]*uibp_tavg + steam_properties[0][6] # psia G296
+uibp_rho = 1/(steam_properties[3][0]*uibp_tavg**6 + steam_properties[3][1]*uibp_tavg**5 + steam_properties[3][2]*uibp_tavg**4\
+           + steam_properties[3][3]*uibp_tavg**3 + steam_properties[3][4]*uibp_tavg**2 + steam_properties[3][5]*uibp_tavg + steam_properties[3][6]) # lb/cft G297 
+uibp_P_Psat = 0.5*(uibp_Psat+pTopProdZone)/uibp_Psat # G298
+uibp_rho *= 1+(7.15037E-19*uibp_tavg**5.91303)*(uibp_P_Psat-1) # G301
+uibp_flowRate = (flow_per_Production_Well/uibp_rho)/3600 # cfs G302
+uibp_velo = uibp_flowRate/(np.pi*uibp_diameter**2/4) # lb/ft-s G303
+uibp_visc = (1+(4.02401E-18*uibp_tavg**5.736882)*(uibp_P_Psat-1))* 407.22*uibp_tavg**-1.194/3600 # lb/ft-s G304 
+uibp_Rew = uibp_diameter*uibp_velo*uibp_rho/uibp_visc # G305
+serghide_a = -2*np.log10((0.00015/uibp_diameter)/3.7+12/uibp_Rew) # G307
+serghide_v = -2*np.log10((0.00015/uibp_diameter)/3.7+2.51*serghide_a/uibp_Rew) # G308
+serghide_c = -2*np.log10((0.00015/uibp_diameter)/3.7+2.51*serghide_v/uibp_Rew) # G309
+uibp_friction_factor = (serghide_a-(serghide_v-serghide_a)**2/(serghide_c-2*serghide_v+serghide_a))**-2 # G311
+uibp_friction_head_loss = (uibp_friction_factor*1/uibp_diameter)*(uibp_velo**2)/(2*g) # ft/ft G312
+
+# Friction production casing 346
+prodCas_Diameter = 8.681/12 # ft G349
+prodCas_velo = uibp_flowRate/(np.pi*prodCas_Diameter**2/4) # fps G351
+prodCas_Rec = prodCas_velo*prodCas_Diameter*uibp_rho/uibp_visc # G354
+serghide_a = -2*np.log10((0.00015/prodCas_Diameter)/3.7+12/prodCas_Rec) # G357
+serghide_v = -2*np.log10((0.00015/prodCas_Diameter)/3.7+2.51*serghide_a/prodCas_Rec) # G358
+serghide_c = -2*np.log10((0.00015/prodCas_Diameter)/3.7+2.51*serghide_v/prodCas_Rec) # G359
+prodCas_friction_factor = (serghide_a-(serghide_v-serghide_a)**2/(serghide_c-2*serghide_v+serghide_a))**-2 # G361
+prodCas_friction_head_loss = (prodCas_friction_factor*949.1351129/prodCas_Diameter)*(prodCas_velo**2)/(2*g)# ft G363
+
+if plant_type == "binary":
+    pumpLift = 949.1351129+prodCas_friction_head_loss # ft G368
+    production_flow_rate = 794119.5420575 # lb/hr  https://publications.mygeoenergynow.org/grc/1033909.pdf
+else:
+    pumpLift = 0
+    production_flow_rate = 439651.42196051 # lb/hr  https://publications.mygeoenergynow.org/grc/1033909.pdf
+
+production_pump_eff = 0.675 # G372
+production_pump_work = ((((pumpLift*1)/(60*33000))/production_pump_eff)*0.7457)*1000 # w-h/lb G386
+
+total_pump_power = production_pump_work + (((((((injection_pump_head_used*144/injWell_rho)*1.)
+                                               /(60*33000))/production_pump_eff)*0.7457)*1000)*frac_inlet)  # w-h/lb
+
+''' Total Plant Power '''
+brine_effectiveness = availableEnergy*second_law_eff
+total_power = (brine_effectiveness*production_flow_rate/1000)-(total_pump_power*production_flow_rate/1000) # kW
+
