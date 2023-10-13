@@ -115,13 +115,11 @@
     },
     "geo_therm": {
         "system": {
-            "well_diameter": 0.25,
-            "fluid_velocity": 2.0,
-            "well_depth": 3000.0,
-            "turb_outlet_temp": 60.0,
+            "well_depth": 1500.0,
+            "ambient_temp": 10.0,
             "capacity_factor": 90.0,
-            "fluid_density": 1000.0,
-            "overall_pump_efficiency": 70.0
+            "number_of_wells": 4,
+            "overall_pump_efficiency": 67.5
         },
         "gov_rates": {
             "discount_rate": -2.0,

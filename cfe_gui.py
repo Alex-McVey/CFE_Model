@@ -8,19 +8,19 @@ import pathlib
 import json
 import os
 from solar import solar_pv
+from geothermal import getem_routine
 import pandas as pd
 import numpy as np
 import numpy_financial as npf
 import geopandas as gpd
 import rasterio
-from pypvwatts import PVWatts
 from pyproj import Transformer
 import time
 from datetime import datetime
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 import logging
-import timeit
+# import timeit
 # import debugpy
 
 from model_assump_dlg import model_assump_dlg
@@ -33,7 +33,6 @@ PROJECT_UI = PROJECT_PATH / "cfe_model.ui"
 ASSUMP_DLG = PROJECT_PATH / "model_assumptions.ui"
 DEFAULT_WHITE = u"background-color: rgb(255, 255, 255);"
 DEFAULT_ERROR = u"background-color: rgb(255, 103, 103);"
-PVWatts.api_key = 'gDMlfWrkSIbMNQRtZvz4Dts8Uve2kpLqQjumvOOk'
 logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -61,8 +60,8 @@ class buildCFEWorker(QObject):
 
     def build_cfe_model(self):
         # debugpy.debug_this_thread()
-        start = timeit.default_timer()
-        logging.info(f"Entering the thread") 
+        # start = timeit.default_timer()
+        # logging.info(f"Entering the thread") 
         ''' Solar Power '''        
         cur_dict = self.model_assump['solar']['system']        
         # Calculate the A.C. Roof-top solar power  
@@ -72,8 +71,7 @@ class buildCFEWorker(QObject):
         dmy2[:] = np.nan          
         filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
         solar_count = filter_.sum()
-        count = 0
-                
+        count = 0                
         for qq in np.where(filter_)[0]: 
             if cur_dict['use_lat_tilt']:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
@@ -205,16 +203,17 @@ class buildCFEWorker(QObject):
         self.frpp_df['Concentrating Solar Power (kW)'] = dmy.tolist()
         self.frpp_df['Annual Concentrating Solar Power (kWh)'] = self.frpp_df['Concentrating Solar Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
 
-        ''' GeoThermal '''
+        ''' GeoThermal '''        
         cur_dict = self.model_assump['geo_therm']['system']
+        # There are three possible values. calculate all three then just assign
+        geoth_power = {1: getem_routine(1,cur_dict),
+                       2: getem_routine(2,cur_dict),
+                       3: getem_routine(3,cur_dict)}
         dmy = np.zeros(self.frpp_df.shape[0])
         dmy[:] = np.nan  
-        filter_ = np.logical_and(~self.frpp_df['Geothermal_CLASS'].isna(), self.frpp_df['Geothermal_CLASS'] <=3)
-        enthalpy_diff, inlet_temp, outlet_temp = self.geothermal_enthalpy(self.frpp_df[filter_]['Geothermal_CLASS']) 
-        dmy[filter_] = (((np.pi*cur_dict['well_diameter']**2/4)*cur_dict['fluid_velocity']*cur_dict['fluid_density'])*\
-                         enthalpy_diff* (1-(outlet_temp+273)/(inlet_temp+273))) - \
-                         ((((np.pi*cur_dict['well_diameter']**2/4)*cur_dict['fluid_velocity']*cur_dict['fluid_density']\
-                         *9.81 *cur_dict['well_depth']/(cur_dict['overall_pump_efficiency']/100))*2)/1000)
+        filter_ = np.logical_and(~self.frpp_df['Geothermal_CLASS'].isna(), self.frpp_df['Geothermal_CLASS'] <=3)  
+        for qq in np.where(filter_)[0]:
+            dmy[qq] = geoth_power[self.frpp_df.iloc[qq]['Geothermal_CLASS']]              
         self.frpp_df['Geothermal Power (kW)'] = dmy.tolist()
         self.frpp_df['Annual Geothermal Power (kWh/yr)'] = self.frpp_df['Geothermal Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
 
@@ -226,49 +225,9 @@ class buildCFEWorker(QObject):
             365. * (cur_dict['capacity_factor']/100.)
         
         # Finished
-        stop = timeit.default_timer()
-        logging.info('Time: ', stop - start)
-        self.result_signal.emit(self.frpp_df)
-
-    def geothermal_enthalpy(self, geo_class:np.array)->np.array:
-        '''
-        Takes in an array of geothermal classes and
-        interpolates the inlet and outlet enthaly and 
-        returns delta(enthalpy).
-
-        Parameters
-        ----------
-        geo_class: np.array
-            - geothermal class
-
-        Returns
-        -------
-        delta_h: np.array
-            - the difference between inlet and outlet enthalpy
-        '''
-        well_temp = {1:300, 2:200, 3:160, 4:0, 5:0, 999:0}
-        enth_dict = {50:209, 60:251, 70:293, 80:334.9, 90:376.9, 100:419, 150:2746, 160:2757.6, 200:2804, 300:2749}
-
-        delta_h = np.zeros_like(geo_class)
-        out_enth = np.zeros_like(geo_class)
-        in_enth = np.zeros_like(geo_class)
-        in_temp = np.zeros_like(geo_class)
-        
-        out_temp = self.model_assump['geo_therm']['system']['turb_outlet_temp']
-        if out_temp in enth_dict.keys():
-            out_enth[:] = enth_dict[out_temp]
-        else:
-            # linear interplolate the enthalpy (outlet is bound between 50 and 100)
-            out_enth[:] = np.interp(out_temp, list(enth_dict.keys()), list(enth_dict.values()))
-
-        for qq,val in enumerate(geo_class):
-            in_enth[qq] = enth_dict[well_temp[val]]
-            in_temp[qq] = well_temp[val]
-
-        delta_h = in_enth - out_enth
-        out_temp =  np.ones_like(geo_class)
-        out_temp[:] = self.model_assump['geo_therm']['system']['turb_outlet_temp']
-        return delta_h, in_temp, out_temp
+        # stop = timeit.default_timer()
+        # logging.info(f'Time: {stop - start} seconds')
+        self.result_signal.emit(self.frpp_df)    
 
 
 class MainWindow(QMainWindow):

@@ -111,13 +111,12 @@ class model_assump_dlg(QDialog):
         self.ht_tax_lineEdit.setText(str(assump_json['hydrogen']['third_party_rates']['taxation'])) 
         self.ht_proj_life_lineEdit.setText(str(assump_json['hydrogen']['third_party_rates']['project_life'])) 	
         ####   Geothermal  ####	
-        self.well_diam_lineEdit.setText(str(assump_json['geo_therm']['system']['well_diameter'])) 
-        self.fluid_vel_lineEdit.setText(str(assump_json['geo_therm']['system']['fluid_velocity'])) 
         self.well_depth_lineEdit.setText(str(assump_json['geo_therm']['system']['well_depth'])) 
-        self.turb_outlet_lineEdit.setText(str(assump_json['geo_therm']['system']['turb_outlet_temp'])) 
+        self.amb_temp_lineEdit.setText(str(assump_json['geo_therm']['system']['ambient_temp'])) 
         self.geo_cap_fac_lineEdit.setText(str(assump_json['geo_therm']['system']['capacity_factor'])) 
-        self.fluid_den_lineEdit.setText(str(assump_json['geo_therm']['system']['fluid_density'])) 
-        self.pump_eff_lineEdit.setText(str(assump_json['geo_therm']['system']['overall_pump_efficiency'])) 	
+        self.num_wells_lineEdit.setText(str(assump_json['geo_therm']['system']['number_of_wells'])) 
+        self.pump_eff_lineEdit.setText(str(assump_json['geo_therm']['system']['overall_pump_efficiency']))	
+        
         self.gg_disc_rate_lineEdit.setText(str(assump_json['geo_therm']['gov_rates']['discount_rate'])) 
         self.gg_infl_rate_lineEdit.setText(str(assump_json['geo_therm']['gov_rates']['inflation_rate']))
         self.gg_ece_LB_lineEdit.setText(str(assump_json['geo_therm']['gov_rates']['electric_cost_escalation_lb'])) 
@@ -153,11 +152,11 @@ class model_assump_dlg(QDialog):
                            self.Nstacks_lineEdit, self.prot_exch_comboBox,  self.heat_rec_comboBox,  self.heat_val_lineEdit, self.stack_replace_lineEdit, 
                            self.annual_degrade_lineEdit, self.hg_disc_rate_lineEdit, self.hg_infl_rate_lineEdit, self.hg_ece_LB_lineEdit, 
                            self.hg_ece_UB_lineEdit, self.hg_tax_lineEdit, self.hg_proj_life_lineEdit, self.ht_disc_rate_lineEdit, self.ht_infl_rate_lineEdit, 
-                           self.ht_ece_LB_lineEdit, self.ht_ece_UB_lineEdit, self.ht_tax_lineEdit, self.ht_proj_life_lineEdit, self.well_diam_lineEdit, 
-                           self.fluid_vel_lineEdit, self.well_depth_lineEdit, self.turb_outlet_lineEdit, self.geo_cap_fac_lineEdit, self.fluid_den_lineEdit, 
-                           self.pump_eff_lineEdit, self.gg_disc_rate_lineEdit, self.gg_infl_rate_lineEdit, self.gg_ece_LB_lineEdit, self.gg_ece_UB_lineEdit, 
-                           self.gg_tax_lineEdit, self.gg_proj_life_lineEdit, self.gt_disc_rate_lineEdit, self.gt_infl_rate_lineEdit, self.gt_ece_LB_lineEdit, 
-                           self.gt_ece_UB_lineEdit, self.gt_tax_lineEdit, self.gt_proj_life_lineEdit]        
+                           self.ht_ece_LB_lineEdit, self.ht_ece_UB_lineEdit, self.ht_tax_lineEdit, self.ht_proj_life_lineEdit, self.well_depth_lineEdit, 
+                           self.amb_temp_lineEdit, self.geo_cap_fac_lineEdit, self.num_wells_lineEdit, self.pump_eff_lineEdit, self.gg_disc_rate_lineEdit, 
+                           self.gg_infl_rate_lineEdit, self.gg_ece_LB_lineEdit, self.gg_ece_UB_lineEdit, self.gg_tax_lineEdit, self.gg_proj_life_lineEdit,
+                           self.gt_disc_rate_lineEdit, self.gt_infl_rate_lineEdit, self.gt_ece_LB_lineEdit,self.gt_ece_UB_lineEdit, self.gt_tax_lineEdit, 
+                           self.gt_proj_life_lineEdit]        
         # Reset all page options to valid background
         for qq, obj in enumerate(self.line_edits):
             if qq in self.color_red:
@@ -644,40 +643,7 @@ class model_assump_dlg(QDialog):
             color_red.append(self.annual_degrade_lineEdit)
             valid = False
             errors.append(f"The hydrogen fuel cell degradation must be numeric") 
-        # Check Geothermal
-        try:
-            # https://workingincaes.inl.gov/SiteAssets/CAES%20Files/FORGE/inl_ext-16-38751%20GETEM%20User%20Manual%20Final.pdf
-            val = float(self.well_diam_lineEdit.text()) 
-            self.assump_json['geo_therm']['system']['well_diameter'] = val
-            if val < 0.1778:
-                color_red.append(self.well_diam_lineEdit)
-                valid = False
-                errors.append(f"The geothermal well diameter must be greater than or equal to 0.1778 m (7 inches)")
-            elif val > 0.3397:
-                color_red.append(self.well_diam_lineEdit)
-                valid = False
-                errors.append(f"The geothermal well diameter must be less than or equal to 0.3397 m (13 3/8 inches)")   
-        except:
-            color_red.append(self.well_diam_lineEdit)
-            valid = False
-            errors.append(f"The geothermal well diameter must be numeric") 
-        
-        try:
-            val = float(self.fluid_vel_lineEdit.text()) 
-            self.assump_json['geo_therm']['system']['fluid_velocity'] = val
-            if val < 0.1:
-                color_red.append(self.fluid_vel_lineEdit)
-                valid = False
-                errors.append(f"The geothermal well fluid velocity must be greater than or equal to 0.1 m/s")
-            elif val > 50:
-                color_red.append(self.fluid_vel_lineEdit)
-                valid = False
-                errors.append(f"The geothermal well fluid velocity must be less than or equal to 50 m/s")   
-        except:
-            color_red.append(self.fluid_vel_lineEdit)
-            valid = False
-            errors.append(f"The geothermal well fluid velocity must be numeric") 
-
+        # Check Geothermal        
         try:
             # https://utahforge.com/2021/03/29/did-you-know-geothermal-wells-can-be-highly-deviated-too/
             val = float(self.well_depth_lineEdit.text()) 
@@ -696,20 +662,20 @@ class model_assump_dlg(QDialog):
             errors.append(f"The geothermal well depth must be numeric") 
         
         try:
-            val = float(self.turb_outlet_lineEdit.text()) 
-            self.assump_json['geo_therm']['system']['turb_outlet_temp'] = val
-            if val < 50:
-                color_red.append(self.turb_outlet_lineEdit)
+            val = float(self.amb_temp_lineEdit.text()) 
+            self.assump_json['geo_therm']['system']['ambient_temp'] = val
+            if val < 0:
+                color_red.append(self.amb_temp_lineEdit)
                 valid = False
-                errors.append(f"The geothermal turbine outlet temperature must be greater than or equal to 50 C")
-            elif val > 100:
-                color_red.append(self.turb_outlet_lineEdit)
+                errors.append(f"The geothermal ambient temperature must be greater than or equal to 0 C")
+            elif val > 43.33:
+                color_red.append(self.amb_temp_lineEdit)
                 valid = False
-                errors.append(f"The geothermal turbine outlet temperature must be less than or equal to 100 C")   
+                errors.append(f"The geothermal ambient temperature must be less than or equal to 43.33 C")   
         except:
-            color_red.append(self.turb_outlet_lineEdit)
+            color_red.append(self.amb_temp_lineEdit)
             valid = False
-            errors.append(f"The geothermal turbine outlet temperature must be numeric") 
+            errors.append(f"The geothermal ambient temperature must be numeric") 
         
         try:
             val = float(self.geo_cap_fac_lineEdit.text()) 
@@ -728,16 +694,16 @@ class model_assump_dlg(QDialog):
             errors.append(f"The capacity factor for geothermal wells must be numeric") 
         
         try:
-            val = float(self.fluid_den_lineEdit.text()) 
-            self.assump_json['geo_therm']['system']['fluid_density'] = val 
-            if val <= 0:
-                color_red.append(self.fluid_den_lineEdit)
+            val = int(float(self.num_wells_lineEdit.text()))
+            self.assump_json['geo_therm']['system']['number_of_wells'] = val 
+            if val < 1:
+                color_red.append(self.num_wells_lineEdit)
                 valid = False
-                errors.append(f"The geothermal turbine fluid density must be greater than 0")             
+                errors.append(f"The number geothermal wells must be greater than or equal to 1")              
         except:
-            color_red.append(self.fluid_den_lineEdit)
+            color_red.append(self.num_wells_lineEdit)
             valid = False
-            errors.append(f"The geothermal turbine fluid density must be numeric") 
+            errors.append(f"The number of geothermal wells must be numeric") 
         
         try:
             val = float(self.pump_eff_lineEdit.text()) 

@@ -48,7 +48,7 @@ text-decoration: underline;</string>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>-126</x>
+        <x>-668</x>
         <y>0</y>
         <width>2089</width>
         <height>876</height>
@@ -2219,46 +2219,6 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
               </property>
               <layout class="QFormLayout" name="formLayout_15">
                <item row="0" column="0">
-                <widget class="QLabel" name="well_diam_label">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>Well Diameter (m)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="well_diam_lineEdit">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>0.25</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="fluid_vel_label">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>Fluid Velocity (m/s)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="fluid_vel_lineEdit">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>2</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="0">
                 <widget class="QLabel" name="well_depth_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -2268,37 +2228,37 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
+               <item row="0" column="1">
                 <widget class="QLineEdit" name="well_depth_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>3000.00</string>
+                  <string>1500.00</string>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="turb_outlet_label">
+               <item row="1" column="0">
+                <widget class="QLabel" name="amb_temp_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>Turbine Outlet Temperature (deg C)</string>
+                  <string>Ambient Temperature (deg C)</string>
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1">
-                <widget class="QLineEdit" name="turb_outlet_lineEdit">
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="amb_temp_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>60</string>
+                  <string>10</string>
                  </property>
                 </widget>
                </item>
-               <item row="4" column="0">
+               <item row="2" column="0">
                 <widget class="QLabel" name="geo_cap_fac_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -2308,7 +2268,7 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="4" column="1">
+               <item row="2" column="1">
                 <widget class="QLineEdit" name="geo_cap_fac_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -2318,27 +2278,27 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="5" column="0">
-                <widget class="QLabel" name="fluid_den_label">
+               <item row="3" column="0">
+                <widget class="QLabel" name="num_wells_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>Fluid Density (kg/m3)</string>
+                  <string>Number of Wells</string>
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
-                <widget class="QLineEdit" name="fluid_den_lineEdit">
+               <item row="3" column="1">
+                <widget class="QLineEdit" name="num_wells_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>1000</string>
+                  <string>4</string>
                  </property>
                 </widget>
                </item>
-               <item row="6" column="0">
+               <item row="4" column="0">
                 <widget class="QLabel" name="pump_eff_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -2348,13 +2308,13 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="6" column="1">
+               <item row="4" column="1">
                 <widget class="QLineEdit" name="pump_eff_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>70</string>
+                  <string>67.5</string>
                  </property>
                 </widget>
                </item>
