@@ -601,6 +601,8 @@ class MainWindow(QMainWindow):
         if os.path.exists(os.path.join(DATA_PATH,"BA_eGrid_Zip.csv")):
             self.pg1_progressBar.setValue(int(5/7*100))
             self.statusbar.showMessage("Adding Egrid and Balancing Authority", 50000)
+            self.landing_page.update()
+            self.landing_page.repaint()
             column_dtype = {'Agency': str, 'Agency Code': pd.Int64Dtype(), 'Zip Code': pd.Int64Dtype(), 
                             'Country': str, 'Electricity Use (MWh)': np.double,'State':str,'eGRID Subregion': str,
                             'Goal Subject (Y/N)': str, 'Balancing Authority ID': str, 
