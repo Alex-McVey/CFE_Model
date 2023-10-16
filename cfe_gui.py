@@ -389,6 +389,16 @@ class MainWindow(QMainWindow):
             msg.exec()
             return
         
+        if not os.path.exists(os.path.join(DATA_PATH,"BA_eGrid_Zip.csv")):
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText("The BA_eGrid_Zip.csv seems to be missing from the data folder.\nThe calculation can continue but if you would like to stop and find the file, please hit cancel.")
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+            ret = msg.exec()
+            if ret == QMessageBox.StandardButton.Cancel:
+                return
+        
         # Proceed to reading the data
         self.statusbar.showMessage("Reading FRPP Data", 50000)
         self.landing_page.update()
@@ -427,7 +437,7 @@ class MainWindow(QMainWindow):
         
         # Clean Data
         self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: int(str(int(x))[0:5]) if len(str(int(x))) > 5 else int(x))
-        self.pg1_progressBar.setValue(int(1/6*100))
+        self.pg1_progressBar.setValue(int(1/7*100))
         self.statusbar.showMessage("Estimating Rooftop Area", 50000)
         self.landing_page.update()
         self.landing_page.repaint()
@@ -465,7 +475,7 @@ class MainWindow(QMainWindow):
                 self.frpp_df.at[index, 'est_num_stories'] = np.nan
                 self.frpp_df.at[index, 'est_rooftop_area_sqft'] = np.nan
         
-        self.pg1_progressBar.setValue(int(2/6*100))
+        self.pg1_progressBar.setValue(int(2/7*100))
         self.statusbar.showMessage("Adding Geothermal Resource Data", 50000)
         self.landing_page.update()
         self.landing_page.repaint()
@@ -500,7 +510,7 @@ class MainWindow(QMainWindow):
         merged_df.drop(['geometry', 'index_right'], axis = 1, inplace = True)
         self.frpp_df = self.frpp_df.merge(merged_df[['Real Property Unique Identifier', 'Geothermal_CLASS']], how = 'left', on = 'Real Property Unique Identifier')
 
-        self.pg1_progressBar.setValue(int(3/6*100))
+        self.pg1_progressBar.setValue(int(3/7*100))
         self.statusbar.showMessage("Adding Wind Resource Data", 50000)
         self.landing_page.update()
         self.landing_page.repaint()
@@ -537,7 +547,7 @@ class MainWindow(QMainWindow):
         assets_wind['Annual Average Wind Speed (m/s)'] = wind_values
         self.frpp_df = self.frpp_df.merge(assets_wind[['Real Property Unique Identifier', 'Annual Average Wind Speed (m/s)']], how = 'left', on = 'Real Property Unique Identifier')
 
-        self.pg1_progressBar.setValue(int(4/6*100))
+        self.pg1_progressBar.setValue(int(4/7*100))
         self.statusbar.showMessage("Adding Solar Resource Data", 50000)
         self.landing_page.update()
         self.landing_page.repaint()
@@ -585,9 +595,23 @@ class MainWindow(QMainWindow):
         self.frpp_df = self.frpp_df.merge(clean_solar, how = 'left', on = 'Zip Code')
 
         self.frpp_df.rename(columns = {'Solar Value': 'Annual Solar Radiation kWh/m2/day'}, inplace= True)
-        self.frpp_df = self.frpp_df.drop(['Square Feet Unit of Measure', 'Unit Of Measure', 'Asset Height Range', 'Asset Height'], axis=1)
+        self.frpp_df = self.frpp_df.drop(['Square Feet Unit of Measure', 'Unit Of Measure', 'Asset Height Range', 'Asset Height'], axis=1)        
 
-        self.pg1_progressBar.setValue(int(5/6*100))
+        # add balancing authority and egrid data
+        if os.path.exists(os.path.join(DATA_PATH,"BA_eGrid_Zip.csv")):
+            self.pg1_progressBar.setValue(int(5/7*100))
+            self.statusbar.showMessage("Adding Egrid and Balancing Authority", 50000)
+            column_dtype = {'Agency': str, 'Agency Code': pd.Int64Dtype(), 'Zip Code': pd.Int64Dtype(), 
+                            'Country': str, 'Electricity Use (MWh)': np.double,'State':str,'eGRID Subregion': str,
+                            'Goal Subject (Y/N)': str, 'Balancing Authority ID': str, 
+                            'Balancing Authority': str, 'Market Type': str, 'Utility Name': str}
+            egrid = pd.read_csv(os.path.join(DATA_PATH,'BA_eGrid_Zip.csv'), dtype=column_dtype)
+            egrid.drop(['Agency Code', 'Country', 'State'], axis = 1, inplace = True)
+            egrid = egrid.loc[(egrid['Agency'] == self.agency_code())]
+            egrid.drop(['Agency'], axis = 1, inplace = True)
+            self.frpp_df = self.frpp_df.merge(egrid, how = 'left', on = 'Zip Code')
+
+        self.pg1_progressBar.setValue(int(6/7*100))
         self.statusbar.showMessage("FRPP Data Read Successfully: Building Table", 50000)
         self.landing_page.update()
         self.landing_page.repaint()
@@ -607,7 +631,7 @@ class MainWindow(QMainWindow):
             for qq, header in enumerate(self.frpp_df.columns.values):
                 self.agency_tableWidget.setItem(kk,qq, QTableWidgetItem(str(self.frpp_df.iloc[kk][header])))
 
-        self.pg1_progressBar.setValue(int(6/6*100))
+        self.pg1_progressBar.setValue(int(7/7*100))
         self.landing_page.update()
         self.landing_page.repaint()
         time.sleep(1)
