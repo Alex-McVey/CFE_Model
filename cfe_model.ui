@@ -21,7 +21,7 @@
        <string notr="true">background-color: rgb(206, 206, 206);</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="landing_page">
        <layout class="QHBoxLayout" name="horizontalLayout">

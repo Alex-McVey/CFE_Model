@@ -36,13 +36,21 @@ class model_assump_dlg(QDialog):
         self.wt_tax_lineEdit.setText(str(assump_json['wind']['third_party_rates']['taxation'])) 
         self.wt_proj_life_lineEdit.setText(str(assump_json['wind']['third_party_rates']['project_life']))
         ####   Solar  ####
+        self.module_type_comboBox.setCurrentIndex(assump_json['solar']['system']['module_type'])
+        self.sys_losses_lineEdit.setText(str(assump_json['solar']['system']['system_losses']))
+        if assump_json['solar']['system']['use_lat_tilt']:
+            self.tilt_checkBox.setChecked(True)
+            self.tilt_lineEdit.setText("")
+            self.tilt_lineEdit.setEnabled(False)
+        else:
+            self.tilt_checkBox.setChecked(False)
+            self.tilt_lineEdit.setText(str(assump_json['solar']['system']['tilt']))
+            self.tilt_lineEdit.setEnabled(True)
+        self.azimuth_lineEdit.setText(str(assump_json['solar']['system']['azimuth']))
+        self.dc_ac_lineEdit.setText(str(assump_json['solar']['system']['dc_to_ac_ratio']))
+        self.inverter_lineEdit.setText(str(assump_json['solar']['system']['invert_eff']))
         self.per_roof_lineEdit.setText(str(assump_json['solar']['system']['precent_roof_avail']))
-        self.rad_2_elec_lineEdit.setText(str(assump_json['solar']['system']['per_rad_to_elec']))
-        self.fract_avg_SolRad_lineEdit.setText(str(assump_json['solar']['system']['avg_radiation_frac'])) 
-        self.perc_land_used_lineEdit.setText(str(assump_json['solar']['system']['perc_land_used'])) 
-        self.sun_hours_lineEdit.setText(str(assump_json['solar']['system']['avg_sun_hours'])) 
-        self.dc_ac_lineEdit.setText(str(assump_json['solar']['system']['dc_to_ac_ratio'])) 
-        self.cap_fac_lineEdit.setText(str(assump_json['solar']['system']['capacity_factor']))
+        self.perc_land_used_lineEdit.setText(str(assump_json['solar']['system']['perc_land_used']))        
         self.sg_disc_rate_lineEdit.setText(str(assump_json['solar']['gov_rates']['discount_rate'])) 
         self.sg_infl_rate_lineEdit.setText(str(assump_json['solar']['gov_rates']['inflation_rate'])) 
         self.sg_ece_LB_lineEdit.setText(str(assump_json['solar']['gov_rates']['electric_cost_escalation_lb'])) 
@@ -131,9 +139,9 @@ class model_assump_dlg(QDialog):
                            self.wind_spacing_lineEdit, self.wind_pow_coef_lineEdit, self.wind_eff_lineEdit, self.wg_disc_rate_lineEdit, 
                            self.wg_infl_rate_lineEdit, self.wg_ece_LB_lineEdit, self.wg_ece_UB_lineEdit, self.wg_tax_lineEdit, 
                            self.wg_proj_life_lineEdit, self.wt_disc_rate_lineEdit, self.wt_infl_rate_lineEdit, self.wt_ece_LB_lineEdit, 
-                           self.wt_ece_UB_lineEdit, self.wt_tax_lineEdit, self.wt_proj_life_lineEdit, self.per_roof_lineEdit, 
-                           self.rad_2_elec_lineEdit, self.fract_avg_SolRad_lineEdit, self.perc_land_used_lineEdit, self.sun_hours_lineEdit, 
-                           self.dc_ac_lineEdit, self.cap_fac_lineEdit, self.sg_disc_rate_lineEdit, self.sg_infl_rate_lineEdit, 
+                           self.wt_ece_UB_lineEdit, self.wt_tax_lineEdit, self.wt_proj_life_lineEdit, self.module_type_comboBox, 
+                           self.sys_losses_lineEdit, self.tilt_lineEdit, self.azimuth_lineEdit, self.dc_ac_lineEdit, self.inverter_lineEdit, 
+                           self.per_roof_lineEdit, self.perc_land_used_lineEdit, self.sg_disc_rate_lineEdit, self.sg_infl_rate_lineEdit, 
                            self.sg_ece_LB_lineEdit, self.sg_ece_UB_lineEdit, self.sg_tax_lineEdit, self.sg_proj_life_lineEdit, 
                            self.st_disc_rate_lineEdit, self.st_infl_rate_lineEdit, self.st_ece_LB_lineEdit, self.st_ece_UB_lineEdit, 
                            self.st_tax_lineEdit, self.st_proj_life_lineEdit, self.opt_eff_lineEdit, self.elec_eff_lineEdit, self.therm_stor_lineEdit, 
@@ -149,7 +157,7 @@ class model_assump_dlg(QDialog):
                            self.fluid_vel_lineEdit, self.well_depth_lineEdit, self.turb_outlet_lineEdit, self.geo_cap_fac_lineEdit, self.fluid_den_lineEdit, 
                            self.pump_eff_lineEdit, self.gg_disc_rate_lineEdit, self.gg_infl_rate_lineEdit, self.gg_ece_LB_lineEdit, self.gg_ece_UB_lineEdit, 
                            self.gg_tax_lineEdit, self.gg_proj_life_lineEdit, self.gt_disc_rate_lineEdit, self.gt_infl_rate_lineEdit, self.gt_ece_LB_lineEdit, 
-                           self.gt_ece_UB_lineEdit, self.gt_tax_lineEdit, self.gt_proj_life_lineEdit]
+                           self.gt_ece_UB_lineEdit, self.gt_tax_lineEdit, self.gt_proj_life_lineEdit]        
         # Reset all page options to valid background
         for qq, obj in enumerate(self.line_edits):
             if qq in self.color_red:
@@ -157,6 +165,7 @@ class model_assump_dlg(QDialog):
             else:
                 obj.setStyleSheet(DEFAULT_WHITE)
         # Set functions
+        self.tilt_checkBox.toggled.connect(self.tilt_switch)
         self.ok_button = self.buttonBox.button(QDialogButtonBox.StandardButton.Ok)
         self.ok_button.clicked.connect(self.validate)
     
@@ -294,86 +303,58 @@ class model_assump_dlg(QDialog):
             color_red.append(self.wind_pow_coef_lineEdit)
             valid = False
             errors.append(f"The wind power coefficient must be numeric")
-        # Check Solar
+        # Check Solar  
+        self.assump_json['solar']['system']['module_type'] = self.module_type_comboBox.currentIndex()
+              
         try:
-            val = float(self.per_roof_lineEdit.text()) 
-            self.assump_json['solar']['system']['precent_roof_avail'] = val
-            if val <= 0:
-                color_red.append(self.per_roof_lineEdit)
+            val = float(self.sys_losses_lineEdit.text()) 
+            self.assump_json['solar']['system']['system_losses'] = val
+            if val < 0:
+                color_red.append(self.sys_losses_lineEdit)
                 valid = False
-                errors.append(f"The percent of rooftop available for solar must be greater than 0%")
+                errors.append(f"The total system losses must be greater than or equal to 0%")
             elif val > 100:
-                color_red.append(self.per_roof_lineEdit)
+                color_red.append(self.sys_losses_lineEdit)
                 valid = False
-                errors.append(f"The percent of rooftop available for solar must be less than or equal to 100%")   
+                errors.append(f"The total system losses must be less than or equal to 100%")   
         except:
-            color_red.append(self.per_roof_lineEdit)
+            color_red.append(self.sys_losses_lineEdit)
             valid = False
-            errors.append(f"The percent of rooftop available for solar must be numeric")
+            errors.append(f"The total system losses must be numeric")
+
+        self.assump_json['solar']['system']['use_lat_tilt'] = self.tilt_checkBox.isChecked()
+        if not self.tilt_checkBox.isChecked():
+            try:
+                val = float(self.tilt_lineEdit.text()) 
+                self.assump_json['solar']['system']['tilt'] = val
+                if val < 0:
+                    color_red.append(self.tilt_lineEdit)
+                    valid = False
+                    errors.append(f"The solar array tilt must be greater than or equal to 0 degrees")
+                elif val > 90:
+                    color_red.append(self.tilt_lineEdit)
+                    valid = False
+                    errors.append(f"The solar array tilt must be less than or equal to 90 degrees")   
+            except:
+                color_red.append(self.tilt_lineEdit)
+                valid = False
+                errors.append(f"The solar array tilt must be numeric")
 
         try:
-            val = float(self.rad_2_elec_lineEdit.text()) 
-            self.assump_json['solar']['system']['per_rad_to_elec'] = val
-            if val <= 0:
-                color_red.append(self.rad_2_elec_lineEdit)
+            val = float(self.azimuth_lineEdit.text()) 
+            self.assump_json['solar']['system']['azimuth'] = val
+            if val < 0:
+                color_red.append(self.azimuth_lineEdit)
                 valid = False
-                errors.append(f"The percent of radiation converted to electricity for solar must be greater than 0%")
-            elif val > 100:
-                color_red.append(self.rad_2_elec_lineEdit)
+                errors.append(f"The solar azimuth must be greater than or equal to 0 degrees")
+            elif val >= 360:
+                color_red.append(self.azimuth_lineEdit)
                 valid = False
-                errors.append(f"The percent of radiation converted to electricity for solar must be less than or equal to 100%")   
+                errors.append(f"The solar azimuth must be less than 360 degrees")   
         except:
-            color_red.append(self.rad_2_elec_lineEdit)
+            color_red.append(self.azimuth_lineEdit)
             valid = False
-            errors.append(f"The percent of radiation converted to electricity for solar must be numeric")
-
-        try:
-            val = float(self.fract_avg_SolRad_lineEdit.text()) 
-            self.assump_json['solar']['system']['avg_radiation_frac'] = val 
-            if val <= 0:
-                color_red.append(self.fract_avg_SolRad_lineEdit)
-                valid = False
-                errors.append(f"The fraction of average solar radiation must be greater than 0")
-            elif val > 1:
-                color_red.append(self.fract_avg_SolRad_lineEdit)
-                valid = False
-                errors.append(f"The fraction of average solar radiation must be less than or equal to 1")   
-        except:
-            color_red.append(self.fract_avg_SolRad_lineEdit)
-            valid = False
-            errors.append(f"The fraction of average solar radiation must be numeric")
-        
-        try:
-            val = float(self.perc_land_used_lineEdit.text()) 
-            self.assump_json['solar']['system']['perc_land_used'] = val 
-            if val <= 0:
-                color_red.append(self.perc_land_used_lineEdit)
-                valid = False
-                errors.append(f"The percent of land used for solar must be greater than 0%")
-            elif val > 100:
-                color_red.append(self.perc_land_used_lineEdit)
-                valid = False
-                errors.append(f"The percent of land used for solar must be less than or equal to 100%")   
-        except:
-            color_red.append(self.perc_land_used_lineEdit)
-            valid = False
-            errors.append(f"The percent of land used for solar must be numeric")
-
-        try:
-            val = float(self.sun_hours_lineEdit.text()) 
-            self.assump_json['solar']['system']['avg_sun_hours'] = val
-            if val < 1:
-                color_red.append(self.sun_hours_lineEdit)
-                valid = False
-                errors.append(f"The average number of sun hours per day must be greater than or equal to 1")
-            elif val > 24:
-                color_red.append(self.sun_hours_lineEdit)
-                valid = False
-                errors.append(f"The average number of sun hours per day must be less than or equal to 24")   
-        except:
-            color_red.append(self.sun_hours_lineEdit)
-            valid = False
-            errors.append(f"The average number of sun hours per day must be numeric")
+            errors.append(f"The solar azimuth must be numeric")
 
         try:
             val = float(self.dc_ac_lineEdit.text()) 
@@ -392,20 +373,53 @@ class model_assump_dlg(QDialog):
             errors.append(f"The D.C. to A.C. ratio must be numeric")
 
         try:
-            val = float(self.cap_fac_lineEdit.text()) 
-            self.assump_json['solar']['system']['capacity_factor'] = val 
-            if val <= 0:
-                color_red.append(self.cap_fac_lineEdit)
+            val = float(self.inverter_lineEdit.text()) 
+            self.assump_json['solar']['system']['invert_eff'] = val 
+            if val < 90:
+                color_red.append(self.inverter_lineEdit)
                 valid = False
-                errors.append(f"The solar capacity factor must be greater than 0%")
-            elif val > 100:
-                color_red.append(self.cap_fac_lineEdit)
+                errors.append(f"The inverter efficiency must be greater than or equal to 90%")
+            elif val > 99.5:
+                color_red.append(self.inverter_lineEdit)
                 valid = False
-                errors.append(f"The solar capacity factor must be less than or equal to 100%")   
+                errors.append(f"The inverter efficiency must be less than or equal to 99.5%")   
         except:
-            color_red.append(self.cap_fac_lineEdit)
+            color_red.append(self.inverter_lineEdit)
             valid = False
-            errors.append(f"The solar capacity factor must be numeric")  
+            errors.append(f"The inverter efficiency must be numeric")
+
+        try:
+            val = float(self.per_roof_lineEdit.text()) 
+            self.assump_json['solar']['system']['precent_roof_avail'] = val
+            if val <= 0:
+                color_red.append(self.per_roof_lineEdit)
+                valid = False
+                errors.append(f"The percent of rooftop available for solar must be greater than 0%")
+            elif val > 100:
+                color_red.append(self.per_roof_lineEdit)
+                valid = False
+                errors.append(f"The percent of rooftop available for solar must be less than or equal to 100%")   
+        except:
+            color_red.append(self.per_roof_lineEdit)
+            valid = False
+            errors.append(f"The percent of rooftop available for solar must be numeric")
+
+        try:
+            val = float(self.perc_land_used_lineEdit.text()) 
+            self.assump_json['solar']['system']['perc_land_used'] = val 
+            if val <= 0:
+                color_red.append(self.perc_land_used_lineEdit)
+                valid = False
+                errors.append(f"The percent of land used for solar must be greater than 0%")
+            elif val > 100:
+                color_red.append(self.perc_land_used_lineEdit)
+                valid = False
+                errors.append(f"The percent of land used for solar must be less than or equal to 100%")   
+        except:
+            color_red.append(self.perc_land_used_lineEdit)
+            valid = False
+            errors.append(f"The percent of land used for solar must be numeric")
+              
         # Check Concentrating Solar
         try:
             val = float(self.opt_eff_lineEdit.text()) 
@@ -919,3 +933,11 @@ class model_assump_dlg(QDialog):
         for qq, obj in enumerate(self.line_edits):
             if obj in color_red:
                 self.color_red.append(qq)
+
+    def tilt_switch(self):
+        if self.tilt_checkBox.isChecked():
+            self.tilt_lineEdit.setText("")
+            self.tilt_lineEdit.setEnabled(False)
+        else:
+            self.tilt_lineEdit.setText(str(self.assump_json['solar']['system']['tilt']))
+            self.tilt_lineEdit.setEnabled(True)

@@ -48,7 +48,7 @@ text-decoration: underline;</string>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>-126</x>
         <y>0</y>
         <width>2089</width>
         <height>876</height>
@@ -565,117 +565,105 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
               </property>
               <layout class="QFormLayout" name="formLayout_5">
                <item row="0" column="0">
-                <widget class="QLabel" name="per_roof_label">
+                <widget class="QLabel" name="module_type_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>Percent of Roof-top Available (%)</string>
+                  <string>Module Type</string>
                  </property>
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QLineEdit" name="per_roof_lineEdit">
+                <widget class="QComboBox" name="module_type_comboBox">
+                 <property name="toolTip">
+                  <string>The module type describes the photovoltaic modules in the array. 
+If you do not have information about the modules in the system, 
+use the default Standard module type
+
+=======================
+Module Type: Standard 
+Cell Material: Crystalline Silicon
+~Efficiency: 19%
+Module Cover: Glass with anti-reflective coating
+=======================
+Module Type: Premium
+Cell Material: Crystalline Silicon
+~Efficiency: 21%
+Module Cover: Glass with anti-reflective coating
+=======================
+Module Type: Thin Film
+Cell Material: Thin Film
+~Efficiency: 18%
+Module Cover: Glass with anti-reflective coating
+=======================</string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
-                 <property name="text">
-                  <string>25</string>
-                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Standard</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Premium</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Thin Film</string>
+                  </property>
+                 </item>
                 </widget>
                </item>
                <item row="1" column="0">
-                <layout class="QVBoxLayout" name="verticalLayout_13">
-                 <item>
-                  <widget class="QLabel" name="rad_2_elec_label">
-                   <property name="styleSheet">
-                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>Percent of Solar Radiation Converted to Electricity (%)</string>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+                <widget class="QLabel" name="sys_losses_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>System Losses (%)</string>
+                 </property>
+                </widget>
                </item>
                <item row="1" column="1">
-                <layout class="QVBoxLayout" name="verticalLayout_14">
-                 <item>
-                  <widget class="QLineEdit" name="rad_2_elec_lineEdit">
-                   <property name="styleSheet">
-                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                   </property>
-                   <property name="text">
-                    <string>16</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item row="2" column="0">
-                <widget class="QLabel" name="fract_avg_SolRad_label">
+                <widget class="QLineEdit" name="sys_losses_lineEdit">
+                 <property name="toolTip">
+                  <string>The system losses account for performance losses 
+you would expect in a real system that are not 
+explicitly calculated by the PVWatts
+
+Default values for the system loss categories
+=============================================
+Category	           Default Value (%)
+Soiling                                   2
+Shading                                 3
+Snow                                     0
+Mismatch                              2
+Wiring                                   2
+Connections                          0.5
+Light-Induced                       1.5 	
+Nameplate                             1	
+Age                                        0
+Availability                             3
+=============================================
+
+100% × [ 1- ( 1 - 0.02 ) × ( 1 - 0.03 ) ×
+( 1 - 0.02 ) × ( 1 - 0.02 ) ×
+( 1 - 0.005 ) × ( 1 - 0.015) ×
+( 1- 0.01 ) × ( 1 - 0.03) ] = 14%</string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>Fraction of Average Solar Radiation</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QLineEdit" name="fract_avg_SolRad_lineEdit">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="0">
-                <widget class="QLabel" name="perc_land_used_label">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>Percent Land Used (%)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="3" column="1">
-                <widget class="QLineEdit" name="perc_land_used_lineEdit">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>50</string>
+                  <string>14</string>
                  </property>
                 </widget>
                </item>
                <item row="4" column="0">
-                <widget class="QLabel" name="sun_hours_label">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>Average Hours of Sun per Day (hours)</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="4" column="1">
-                <widget class="QLineEdit" name="sun_hours_lineEdit">
-                 <property name="styleSheet">
-                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
-                 </property>
-                 <property name="text">
-                  <string>5</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="5" column="0">
                 <widget class="QLabel" name="dc_ac_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
@@ -685,8 +673,19 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </property>
                 </widget>
                </item>
-               <item row="5" column="1">
+               <item row="4" column="1">
                 <widget class="QLineEdit" name="dc_ac_lineEdit">
+                 <property name="toolTip">
+                  <string>The DC to AC size ratio is the ratio of the array's DC rated size to the 
+inverter's AC rated size. For the default value of 1.2, a 4 kW system 
+size would be for a 4 DC kW array at standard test conditions (STC) 
+and 4 DC kW / 1.2 = 3.33 AC kW inverter.
+
+The default value of 1.20 is reasonable for most systems. A typical 
+range is 1.10 to 1.25, although some large-scale systems have ratios 
+as high as 1.50. The optimal value depends on the system's location, 
+array orientation, and module and inverter costs.</string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
@@ -696,22 +695,167 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                 </widget>
                </item>
                <item row="6" column="0">
-                <widget class="QLabel" name="cap_fac_label">
+                <widget class="QLabel" name="per_roof_label">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>Capacity Factor (%)</string>
+                  <string>Percent of Roof-top 
+Available (%)</string>
                  </property>
                 </widget>
                </item>
                <item row="6" column="1">
-                <widget class="QLineEdit" name="cap_fac_lineEdit">
+                <widget class="QLineEdit" name="per_roof_lineEdit">
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>16</string>
+                  <string>25</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="0">
+                <widget class="QLabel" name="perc_land_used_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Percent Land Used (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="7" column="1">
+                <widget class="QLineEdit" name="perc_land_used_lineEdit">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>50</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="tilt_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Tilt (deg)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <layout class="QHBoxLayout" name="horizontalLayout_5">
+                 <item>
+                  <widget class="QCheckBox" name="tilt_checkBox">
+                   <property name="toolTip">
+                    <string>The tilt angle is the angle from horizontal of the photovoltaic modules in the array. 
+For a fixed array, the tilt angle is the angle from horizontal of the array where 
+0° = horizontal, and 90° = vertical.
+
+A common rule of thumb for fixed arrays is to set the tilt angle to the latitude of the 
+system's location to maximize the system's total electrical output over the year.</string>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>Use Latitude</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="tilt_lineEdit">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>The tilt angle is the angle from horizontal of the photovoltaic modules in the array. 
+For a fixed array, the tilt angle is the angle from horizontal of the array where
+ 0° = horizontal, and 90° = vertical.
+
+For a fixed array, the default value is 20 degrees. Use a lower tilt angle favor 
+peak production in the summer months when the sun is high in the sky, or a 
+higher tilt angle to increase output during winter months.</string>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="readOnly">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="azimuth_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Azimuth (deg)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QLineEdit" name="azimuth_lineEdit">
+                 <property name="toolTip">
+                  <string>For a fixed array, the azimuth angle is the angle clockwise from true north
+describing the direction that the array faces. An azimuth angle of 180° is
+for a south-facing array, and an azimuth angle of zero degrees is for a 
+north-facing array. The default value is an azimuth angle of 180° (south-facing) 
+for locations in the northern hemisphere.
+
+For the northern hemisphere, increasing the azimuth angle favors afternoon 
+energy production, and decreasing the azimuth angle favors morning energy 
+production. 
+
+Azimuth angles for different compass headings
+Heading        Azimuth Angle
+N                      0°
+NE                    45°
+E                      90°
+SE                    135°
+S                      180°
+SW                   225°
+W                     270°
+NW                  315°</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>180</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0">
+                <widget class="QLabel" name="inverter_label">
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>Inverter Efficiency (%)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="1">
+                <widget class="QLineEdit" name="inverter_lineEdit">
+                 <property name="toolTip">
+                  <string>The inverter's nominal rated DC-to-AC conversion efficiency,
+defined as the inverter's rated AC power output divided by 
+its rated DC power output. The default value is 96%.</string>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
+                 </property>
+                 <property name="text">
+                  <string>96</string>
                  </property>
                 </widget>
                </item>
@@ -2572,8 +2716,8 @@ border-color: rgb(8, 127, 255);</string>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>257</x>
+     <y>1010</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -2588,8 +2732,8 @@ border-color: rgb(8, 127, 255);</string>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>325</x>
+     <y>1010</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
