@@ -59,9 +59,7 @@ class buildCFEWorker(QObject):
         self.dmy2 = None
 
     def build_cfe_model(self):
-        # debugpy.debug_this_thread()
-        # start = timeit.default_timer()
-        # logging.info(f"Entering the thread") 
+        # debugpy.debug_this_thread()        
         ''' Solar Power '''        
         cur_dict = self.model_assump['solar']['system']        
         # Calculate the A.C. Roof-top solar power  
@@ -223,10 +221,7 @@ class buildCFEWorker(QObject):
                                           cur_dict['cell_voltage']) * cur_dict['N_stacks'] * 0.001
         self.frpp_df['Annual Fuel Cell (kW/yr)'] =  self.frpp_df['Fuel Cell (kW)'] * cur_dict['daily_operation'] * \
             365. * (cur_dict['capacity_factor']/100.)
-        
-        # Finished
-        # stop = timeit.default_timer()
-        # logging.info(f'Time: {stop - start} seconds')
+                
         self.result_signal.emit(self.frpp_df)    
 
 
@@ -409,9 +404,9 @@ class MainWindow(QMainWindow):
                         'Latitude', 'Longitude', 'Real Property Type', 'Real Property Use', 'Asset Status','Acres', 
                         'Square Feet (Buildings)', 'Square Feet Unit of Measure', 'Unit Of Measure',
                         'Asset Height Range', 'Asset Height']
-        
+        #pd.Int64Dtype()
         column_dtype = {'Reporting Agency': str, 'Real Property Unique Identifier': str, 'State Name': str, 'US/Foreign': str,
-                        'Zip Code':pd.Int64Dtype(),'Latitude': np.double, 'Longitude': np.double, 'Real Property Type': str, 
+                        'Zip Code':str,'Latitude': np.double, 'Longitude': np.double, 'Real Property Type': str, 
                         'Real Property Use': str, 'Asset Status': str, 'Acres': np.double, 'Square Feet (Buildings)': np.double, 
                         'Square Feet Unit of Measure': str, 'Unit Of Measure': str,
                         'Asset Height Range': str, 'Asset Height': np.double}
@@ -436,7 +431,8 @@ class MainWindow(QMainWindow):
             | ((self.frpp_df['Real Property Type'] == 'Structure') & (self.frpp_df['Real Property Use'] == 'Parking Structures')))]
         
         # Clean Data
-        self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: int(str(int(x))[0:5]) if len(str(int(x))) > 5 else int(x))
+        self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: x[0:5] if len(x) > 5 else int(x))
+        self.frpp_df = self.frpp_df.astype({'Zip Code': int})
         self.pg1_progressBar.setValue(int(1/7*100))
         self.statusbar.showMessage("Estimating Rooftop Area", 50000)
         self.landing_page.update()
@@ -603,14 +599,12 @@ class MainWindow(QMainWindow):
             self.statusbar.showMessage("Adding Egrid and Balancing Authority", 50000)
             self.landing_page.update()
             self.landing_page.repaint()
-            column_dtype = {'Agency': str, 'Agency Code': pd.Int64Dtype(), 'Zip Code': pd.Int64Dtype(), 
-                            'Country': str, 'Electricity Use (MWh)': np.double,'State':str,'eGRID Subregion': str,
-                            'Goal Subject (Y/N)': str, 'Balancing Authority ID': str, 
-                            'Balancing Authority': str, 'Market Type': str, 'Utility Name': str}
+            column_dtype = {'Zip Code': pd.Int64Dtype(), 'eGRID Subregion': str,
+                            'Balancing Authority ID': str, 'Balancing Authority': str}
             egrid = pd.read_csv(os.path.join(DATA_PATH,'BA_eGrid_Zip.csv'), dtype=column_dtype)
-            egrid.drop(['Agency Code', 'Country', 'State'], axis = 1, inplace = True)
-            egrid = egrid.loc[(egrid['Agency'] == self.agency_code())]
-            egrid.drop(['Agency'], axis = 1, inplace = True)
+            # egrid.drop(['Agency Code', 'Country', 'State'], axis = 1, inplace = True)
+            # egrid = egrid.loc[(egrid['Agency'] == self.agency_code())]
+            # egrid.drop(['Agency'], axis = 1, inplace = True)
             self.frpp_df = self.frpp_df.merge(egrid, how = 'left', on = 'Zip Code')
 
         self.pg1_progressBar.setValue(int(6/7*100))
@@ -1737,8 +1731,7 @@ class MainWindow(QMainWindow):
         self.build_cfe_progressBar.setValue(val)        
         self.time_left_label_label.setText(f"{run_label} is being calculated")
 
-    def handle_cfeTask_results(self, frpp_df):
-        logging.info(f"Log from the handle_cfeTask_results. Current solarcount is {self.solar_count}")
+    def handle_cfeTask_results(self, frpp_df):        
         self.frpp_df = frpp_df.copy()
 
     def toggle_cfe_running(self, running:bool):
