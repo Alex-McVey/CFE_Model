@@ -460,7 +460,7 @@ class MainWindow(QMainWindow):
         self.frpp_df['est_rooftop_area_sqft'] = list(np.zeros((self.frpp_df.shape[0],1)))
         for index, row in self.frpp_df.iterrows():
             if row['Real Property Type'] == 'Building':
-                if not np.isnan(row['Asset Height']):
+                if not np.isnan(row['Asset Height']) and row['Asset Height'] != 0:
                     self.frpp_df.at[index, 'est_num_stories'] = round(row['Asset Height']/12, 0)
                 elif isinstance(row['Asset Height Range'], str):
                     self.frpp_df.at[index, 'est_num_stories'] = height_to_stories[row['Asset Height Range']]

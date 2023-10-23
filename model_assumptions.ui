@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1441</width>
+    <width>2084</width>
     <height>1020</height>
    </rect>
   </property>
@@ -48,7 +48,7 @@ text-decoration: underline;</string>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>-668</x>
+        <x>0</x>
         <y>0</y>
         <width>2089</width>
         <height>876</height>
@@ -93,12 +93,17 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>Fraction of Averate Wind Speed</string>
+                  <string>Fraction of Average Wind Speed</string>
                  </property>
                 </widget>
                </item>
                <item row="0" column="1">
                 <widget class="QLineEdit" name="wind_frac_lineEdit">
+                 <property name="toolTip">
+                  <string>Use this value to artificially increase or decrease the 
+average wind speed used in the calculation.
+wind_speed = Fraction*measured_wind_speed</string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
@@ -119,6 +124,15 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                </item>
                <item row="1" column="1">
                 <widget class="QLineEdit" name="wind_turb_diam_lineEdit">
+                 <property name="toolTip">
+                  <string>You can estimate power rating with the following formula:
+P = 0.1215D^2.23
+
+50 m = 750 kW
+75 m = 1,844 kW
+100 m = 3500 kW
+120 m = 5260 kW</string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
@@ -139,6 +153,12 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                </item>
                <item row="2" column="1">
                 <widget class="QLineEdit" name="wind_CapFac_lineEdit">
+                 <property name="toolTip">
+                  <string>Capacity factor is determined automatically for most states from
+state averages gathered from real projects built over the past 30 years.
+For those with no data this value with be used. 
+Values range from ~50% down to ~15%.</string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
@@ -184,6 +204,10 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="wind_spacing_lineEdit">
+                   <property name="toolTip">
+                    <string>The default spacing in SAM is 8*turbine diameter 
+but sources support seperations down to 5*diameter</string>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                    </property>
@@ -206,6 +230,10 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                </item>
                <item row="5" column="1">
                 <widget class="QLineEdit" name="wind_pow_coef_lineEdit">
+                 <property name="toolTip">
+                  <string>Power coefficiencts tend to vary over a range of wind speeds but
+a reasonable range would be between 0.1 and 0.5 </string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
@@ -226,6 +254,27 @@ font: 700 16pt &quot;Segoe UI&quot;;</string>
                </item>
                <item row="4" column="1">
                 <widget class="QLineEdit" name="wind_eff_lineEdit">
+                 <property name="toolTip">
+                  <string>This value is to account most of the losses one would see in a real wind farm
+From NREL:
+
+Balance-of-plant 0.5%
+Grid availability 1.5%
+Turbine availability 3.58%
+Electrical efficiency 1.91%
+Electrical parasitic 0.1%
+Environmental degradation 1.8%
+Environmental conditions 0.4%
+Environmental icing loss 0.21%
+Environment curtailment 1%
+Grid curtailment 0.84%
+Load curtailment 0.99%
+Turbine generic 1.7%
+High wind hysteresis 0.4%
+Sub-optimal performance 1.1%
+Site-specific loss 0.81%
+External wake loss 1.1%</string>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">font: 10pt &quot;Segoe UI&quot;;</string>
                  </property>
