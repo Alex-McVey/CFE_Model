@@ -99,18 +99,21 @@ class buildCFEWorker(QObject):
         filter_ = ~self.frpp_df['Acres'].isna()
         solar_count = filter_.sum()
         count = 0
-        for qq in np.where(filter_)[0]:            
+        for qq in np.where(filter_)[0]:  
+            land_used = cur_dict['perc_land_used']   
+            if self.frpp_df.iloc[qq]['Real Property Use'] == 'Research and Development':
+                land_used = 25.0
             if cur_dict['use_lat_tilt']:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
                                     self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
                                     dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['perc_land_used'], tilt=self.frpp_df.iloc[qq]['Latitude'],
+                                    per_area=land_used, tilt=self.frpp_df.iloc[qq]['Latitude'],
                                     azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)       
             else:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
                                     self.frpp_df.iloc[qq]['Acres']*43560, system_loss=cur_dict['system_losses'],
                                     dc_ac=cur_dict['dc_to_ac_ratio'], invert_eff=cur_dict['invert_eff'],
-                                    per_area=cur_dict['perc_land_used'], tilt=cur_dict['tilt'],
+                                    per_area=land_used, tilt=cur_dict['tilt'],
                                     azimuth=cur_dict['azimuth'], mod_type=cur_dict['module_type'], ground=True)
             solar_calc.analyze()
             dmy[qq] = solar_calc.total
