@@ -21,12 +21,18 @@
        <string notr="true">background-color: rgb(206, 206, 206);</string>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="landing_page">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QFrame" name="lp_data_frame">
+          <property name="minimumSize">
+           <size>
+            <width>500</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="styleSheet">
            <string notr="true">font: 12pt &quot;Segoe UI&quot;;
 background-color: rgb(201, 234, 252);</string>
@@ -360,6 +366,12 @@ font: 16pt &quot;Segoe UI&quot;;</string>
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
             <widget class="QLabel" name="landing_image">
+             <property name="minimumSize">
+              <size>
+               <width>700</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true"/>
              </property>
@@ -367,7 +379,13 @@ font: 16pt &quot;Segoe UI&quot;;</string>
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="cfe_res.qrc">:/images/id25117_BidenEnergy500.jpg</pixmap>
+              <pixmap resource="cfe_res.qrc">:/images/bcg-6-clean-tech.jpg</pixmap>
+             </property>
+             <property name="scaledContents">
+              <bool>false</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
