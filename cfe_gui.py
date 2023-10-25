@@ -89,7 +89,7 @@ class buildCFEWorker(QObject):
             count += 1 
             self.progress_signal.emit(int(count/solar_count*100), "Rooftop Solar")  
         self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'] = dmy.tolist()
-        self.frpp_df['Rooftop Solar Power'] = dmy2.tolist()
+        self.frpp_df['Rooftop Solar Power (kW)'] = dmy2.tolist()
                          
         # Calculate the A.C. Ground mounted Solar
         dmy = np.zeros(self.frpp_df.shape[0])
@@ -121,7 +121,7 @@ class buildCFEWorker(QObject):
             count += 1 
             self.progress_signal.emit(int(count/solar_count*100), "Ground Mounted Solar") 
 
-        self.frpp_df['Ground Solar Power'] = dmy2.tolist()        
+        self.frpp_df['Ground Solar Power (kW)'] = dmy2.tolist()        
         self.frpp_df['Annual Ground Solar Power (kWh/yr)'] = dmy.tolist()
 
         ''' Wind Power '''
@@ -222,7 +222,7 @@ class buildCFEWorker(QObject):
         cur_dict = self.model_assump['hydrogen']['system']
         self.frpp_df['Fuel Cell (kW)'] = (cur_dict['curr_density'] * cur_dict['cell_active_area'] * \
                                           cur_dict['cell_voltage']) * cur_dict['N_stacks'] * 0.001
-        self.frpp_df['Annual Fuel Cell (kW/yr)'] =  self.frpp_df['Fuel Cell (kW)'] * cur_dict['daily_operation'] * \
+        self.frpp_df['Annual Fuel Cell (kWh/yr)'] =  self.frpp_df['Fuel Cell (kW)'] * cur_dict['daily_operation'] * \
             365. * (cur_dict['capacity_factor']/100.)
                 
         self.result_signal.emit(self.frpp_df)    
@@ -714,7 +714,6 @@ class MainWindow(QMainWindow):
         self.thread.finished.connect(self.finalize_frpp_df) 
         self.thread.start()
         QApplication.processEvents()
-        print("Thread starting")
 
     def finalize_frpp_df(self):
         ''' Finally Sum the various renewables to find the total power per site '''
@@ -738,7 +737,7 @@ class MainWindow(QMainWindow):
         # This means that for vacant land we will potentiallys have data for Wind, Ground Solar, Concentrating Solar, and Geothermal 
         # in this instance we will choose the one with the greatest power potential (though in the future that should
         # probably be weighed against its cost)
-        power = np.array([self.frpp_df['Ground Solar Power'].to_numpy(),
+        power = np.array([self.frpp_df['Ground Solar Power (kW)'].to_numpy(),
                          self.frpp_df['Concentrating Solar Power (kW)'].to_numpy(), 
                          self.frpp_df['Wind Power (kW)'].to_numpy(), 
                          self.frpp_df['Geothermal Power (kW)'].to_numpy() ]).transpose()
@@ -789,12 +788,12 @@ class MainWindow(QMainWindow):
         self.frpp_df['Wind Energy Built (kWh/yr)'] = energy[2,:]
         self.frpp_df['Geothermal Energy Built (kWh/yr)'] = energy[3,:]        
         # Finalize
-        self.frpp_df['Total Power (kW)'] = self.frpp_df[['Rooftop Solar Power','Ground Solar Power Built',
+        self.frpp_df['Total Power (kW)'] = self.frpp_df[['Rooftop Solar Power (kW)','Ground Solar Power Built',
                                                          'Wind Power Built (kW)','Fuel Cell (kW)','Geothermal Power Built (kW)',
                                                          'Concentrating Solar Power Built(kW)']].sum(axis=1)
            
         self.frpp_df['Total Energy (kWh)'] = self.frpp_df[['Annual Rooftop Solar Power (kWh/yr)','Ground Solar Energy Built (kWh/yr)',
-                                                          'Wind Energy Built (kWh/yr)','Annual Fuel Cell (kW/yr)',
+                                                          'Wind Energy Built (kWh/yr)','Annual Fuel Cell (kWh/yr)',
                                                           'Geothermal Energy Built (kWh/yr)','Concentrating Solar Energy Built (kWh)']].sum(axis=1)
         
 
@@ -894,7 +893,7 @@ class MainWindow(QMainWindow):
             self.econ_price_esc_lineEdit.setText(str(esc_val))
             self.econ_price_esc_Slider.setValue(24)                   
             
-        else:
+        else: 
             # Third Party Options
             cur_dict = self.model_assump[self.assump_from_econ_cfe()]['third_party_rates']
             self.econ_rate_frame.setStyleSheet(u"font: 12pt \"Segoe UI\";\n"
@@ -1020,6 +1019,7 @@ class MainWindow(QMainWindow):
         self.agency_price_data = None
         self.cfe_bar_canvas.axes.cla() 
         self.econ_canvas.axes.cla() 
+        self.thread = QThread()
 
         # Restore default choices
         self.agency_comboBox.setCurrentIndex(0)
@@ -1054,11 +1054,11 @@ class MainWindow(QMainWindow):
             required_headers = ['Reporting Agency', 'Real Property Unique Identifier', 'US/Foreign', 'State Name', 'Zip Code', 
                                 'Latitude', 'Longitude', 'Real Property Type', 'Real Property Use', 'Asset Status', 'Acres', 
                                 'Square Feet (Buildings)', 'est_num_stories', 'est_rooftop_area_sqft', 'Geothermal_CLASS', 
-                                'Annual Average Wind Speed (m/s)', 'Annual Solar Radiation kWh/m2/day', 'Rooftop Solar Power', 
-                                'Ground Solar Power', 'Annual Rooftop Solar Power (kWh/yr)', 'Annual Ground Solar Power (kWh/yr)', 
+                                'Annual Average Wind Speed (m/s)', 'Annual Solar Radiation kWh/m2/day', 'Rooftop Solar Power (kW)', 
+                                'Ground Solar Power (kW)', 'Annual Rooftop Solar Power (kWh/yr)', 'Annual Ground Solar Power (kWh/yr)', 
                                 'N Wind Turbines', 'Wind Power (kW)', 'Annual Wind Power (kWh/yr)', 'Concentrating Solar Power (kW)', 
                                 'Annual Concentrating Solar Power (kWh)', 'Geothermal Power (kW)', 'Annual Geothermal Power (kWh/yr)', 
-                                'Fuel Cell (kW)', 'Annual Fuel Cell (kW/yr)', 'Ground Solar Power Built', 'Concentrating Solar Power Built(kW)', 
+                                'Fuel Cell (kW)', 'Annual Fuel Cell (kWh/yr)', 'Ground Solar Power Built', 'Concentrating Solar Power Built(kW)', 
                                 'Wind Power Built (kW)', 'Geothermal Power Built (kW)', 'Ground Solar Energy Built (kWh/yr)', 
                                 'Concentrating Solar Energy Built (kWh)', 'Wind Energy Built (kWh/yr)', 'Geothermal Energy Built (kWh/yr)', 
                                 'Total Power (kW)', 'Total Energy (kWh)']
@@ -1206,9 +1206,19 @@ class MainWindow(QMainWindow):
             if not os.path.exists(new_folder):
                 os.mkdir(new_folder)
 
+            out = self.frpp_df.copy()
+            out = out.drop(['Ground Solar Power Built','Concentrating Solar Power Built(kW)', 'Wind Power Built (kW)', 
+                      'Geothermal Power Built (kW)','Ground Solar Energy Built (kWh/yr)',
+                      'Concentrating Solar Energy Built (kWh)','Wind Energy Built (kWh/yr)',
+                      'Geothermal Energy Built (kWh/yr)'], axis=1)
+            out = out.set_index('Real Property Unique Identifier')
+            # out.to_json(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Data.json"),orient="index",indent=4)
             self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))
+            out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Data.csv"))
             self.econ_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Econ_Data.csv"))
             self.cfe_use_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Transition.csv"))
+            table1 = self.build_econ_tableout()
+            table1.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table1.csv"))
         else:
             self.statusbar.showMessage("Export Canceled", 30000)
 
@@ -1429,9 +1439,7 @@ class MainWindow(QMainWindow):
         self.econ_annual_payments_lineEdit.setText(f"{total/float(self.econ_cont_per_lineEdit.text()):,.2f}")
         self.econ_owner_savings_lineEdit.setText(f"{self.econ_df['Cost without CFE ($)'].sum()-total:,.2f}")
         if self.third_party_radioButton.isChecked():
-            lvl_cst = (npf.npv(float(self.econ_interest_rate_lineEdit.text())/100, \
-                               np.concatenate(([0.],self.econ_df['Revenue ($)'].values[:]))))*\
-                                1000/self.econ_df['Discounted Energy'].sum()
+            lvl_cst = (total*1000)/self.econ_df['Energy (kWh)'].sum()
         else:
             lvl_cst = (-npf.npv(float(self.econ_interest_rate_lineEdit.text())/100, \
                 np.concatenate(([-investment],self.econ_df['Government Expenses ($)'].values[:]))))*\
@@ -1769,7 +1777,7 @@ class MainWindow(QMainWindow):
         n_fuelcell = self.frpp_df.shape[0]
         n_conc_sol = np.sum(np.logical_and(self.frpp_df['Real Property Type'] == 'Land', self.frpp_df['Real Property Use'] == 'Vacant'))
 
-        n_solar_roof_built = np.sum(~self.frpp_df['Rooftop Solar Power'].isna().values)
+        n_solar_roof_built = np.sum(~self.frpp_df['Rooftop Solar Power (kW)'].isna().values)
         n_solar_grnd_built = np.sum(np.logical_and(~self.frpp_df['Ground Solar Power Built'].isna().values,
                                                    self.frpp_df['Ground Solar Power Built'] != 0))
         n_wind_built = np.sum(np.logical_and(~self.frpp_df['Wind Power Built (kW)'].isna().values,
@@ -1807,7 +1815,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-i"
                                     f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available: {n_solar_roof}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built: {n_solar_roof_built}</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential: {self.frpp_df['Rooftop Solar Power'].sum()*0.001:,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential: {self.frpp_df['Rooftop Solar Power (kW)'].sum()*0.001:,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation: {self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001:,.0f} MWh</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand: {(self.frpp_df['Annual Rooftop Solar Power (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:.1f}%</span></p>\n"
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
@@ -1816,7 +1824,7 @@ class MainWindow(QMainWindow):
             "<p style=\"  -qt-block-i"
                                     f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available: {n_solar_grnd}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built: {n_solar_grnd_built}</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential: {self.frpp_df['Ground Solar Power'].sum()*0.001:,.0f} MW</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential: {self.frpp_df['Ground Solar Power (kW)'].sum()*0.001:,.0f} MW</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation: {self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001:,.0f} MWh</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand: {(self.frpp_df['Annual Ground Solar Power (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:.1f}%</span></p>\n" 
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
@@ -1826,8 +1834,8 @@ class MainWindow(QMainWindow):
                                     f"ndent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of Sites available: {n_fuelcell}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built: {n_fuelcell_built}</span></p>\n"
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential: {self.frpp_df['Fuel Cell (kW)'].sum()*0.001:,.0f} MW</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation: {self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001:,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand: {(self.frpp_df['Annual Fuel Cell (kW/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:.1f}%</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation: {self.frpp_df['Annual Fuel Cell (kWh/yr)'].sum()*0.001:,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand: {(self.frpp_df['Annual Fuel Cell (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:.1f}%</span></p>\n"
             "<p style=\"-qt-paragraph-type:empty;  -qt-block-indent:0; text-indent:0px; font-size:14pt;\"><br /></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:22pt; color:#990000;\">Geothermal Power</span></p>\n"
             "<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#990000;\">===================================================</span></p>\n"
@@ -1855,8 +1863,8 @@ class MainWindow(QMainWindow):
         tot_eng = self.agency_energy_data['Electricity (MWh)'].values[0]                             
         tot_price = self.agency_price_data['Electricity'].values[0]
         # Establish CFE dropdown menu   
-        for key, value in {'Wind Power (kW)': 'Wind', 'Rooftop Solar Power': "Rooftop Solar", 
-                    'Ground Solar Power': "Ground-Mounted Solar",
+        for key, value in {'Wind Power (kW)': 'Wind', 'Rooftop Solar Power (kW)': "Rooftop Solar", 
+                    'Ground Solar Power (kW)': "Ground-Mounted Solar",
                     'Fuel Cell (kW)': "Hydrogen Fuel Cells", 'Geothermal Power (kW)': "Geothermal", 
                     'Concentrating Solar Power (kW)': "Concentrating Solar"}.items():
             if self.frpp_df[key].sum() > 0:
@@ -1912,9 +1920,9 @@ class MainWindow(QMainWindow):
         cfe_text = self.econ_cfe_comboBox.currentText()
         if req == "Power":
             if cfe_text == "Rooftop Solar":
-                return 'Rooftop Solar Power'
+                return 'Rooftop Solar Power (kW)'
             elif cfe_text == "Ground-Mounted Solar": 
-                return 'Ground Solar Power'
+                return 'Ground Solar Power (kW)'
             elif cfe_text == "Wind": 
                 return 'Wind Power (kW)'
             elif cfe_text == "Geothermal":
@@ -1933,7 +1941,7 @@ class MainWindow(QMainWindow):
             elif cfe_text == "Geothermal":
                 return 'Annual Geothermal Power (kWh/yr)'
             elif cfe_text == "Hydrogen Fuel Cells":
-                return 'Annual Fuel Cell (kW/yr)'
+                return 'Annual Fuel Cell (kWh/yr)'
             elif cfe_text == "Concentrating Solar":
                 return 'Annual Concentrating Solar Power (kWh)'
         
@@ -2041,6 +2049,89 @@ class MainWindow(QMainWindow):
         else:
             return -1
         
+    def build_econ_tableout(self):
+        table1 = {'CFE Technology': [],
+                  'Sites Available': [],
+                  'Total Potential CFE Capacity (MW)': [],        
+                  'Total Annual Generation Potential (MWh/yr)': [],
+                  'Perc of Total Agency Demand (%)': [], 
+                  'Gvmnt Owned LCOE ($/MWh)': [],  
+                  'Gvmnt Owned LCOE, with battery Storage ($/MWh)*': [], 
+                  'Gvmnt Life Cycle Cost ($million)': [], 
+                  'Gvmnt Total Savings ($million)': [], 
+                  'Gvmnt Simple Payback (yrs)': [],
+                  '3rdP Owned LCOE ($/MWh)': [],  
+                  '3rdP Owned LCOE, with battery Storage ($/MWh)*': [], 
+                  '3rdP Life Cycle Cost ($million)': [], 
+                  '3rdP Total Savings ($million)': [], 
+                  '3rdP Simple Payback (yrs)': [] }
+        
+        used = []
+        for key, value in {'Wind Power (kW)': 'Wind', 'Rooftop Solar Power (kW)': "Rooftop Solar", 
+                    'Ground Solar Power (kW)': "Ground Mounted Solar",
+                    'Fuel Cell (kW)': "Hydrogen Fuel Cells", 'Geothermal Power (kW)': "Geothermal", 
+                    'Concentrating Solar Power (kW)': "Concentrating Solar"}.items():
+            if self.frpp_df[key].sum() > 0:
+                used.append(value)
+        
+        if self.third_party_radioButton.isChecked():            
+            self.gov_radioButton.setChecked(True)
+        self.owner_switch()
+        dmy_report = self.cfe_summary_textEdit.toPlainText()
+        
+        for qq, key in enumerate(used):   
+            if key == 'Hydrogen Fuel Cells':
+                continue       
+            table1['CFE Technology'].append(key)
+            start = dmy_report.index(key)
+            try:
+                end = start + dmy_report[start:].index('\n\n')
+            except ValueError:
+                end = len(dmy_report)
+            sub = dmy_report[start:end]
+            table1['Sites Available'].append(
+                int(float(sub[sub.find('Number of Sites available')+26:sub.index('\n',sub.find('Number of Sites available'))])))
+            table1['Total Annual Generation Potential (MWh/yr)'].append(
+                float("".join([x for x in sub[sub.index(':',sub.find('Total Annual Generation'))+1:
+                        sub.index('MW',sub.find('Total Annual Generation:'))] if x != ","])))
+            table1['Total Potential CFE Capacity (MW)'].append(
+                float(sub[sub.index(':',sub.find('Total Potential'))+1:sub.index('MW',sub.find('Total Potential'))]))
+            table1['Perc of Total Agency Demand (%)'].append(
+                float(sub[sub.index(':',sub.find('Percent of Agency Demand'))+1:sub.index('%',sub.find('Percent of Agency Demand'))]))
+            if self.econ_cfe_comboBox.currentText() != key:
+                self.econ_cfe_comboBox.setCurrentIndex(qq)
+            self.econ_energy_storage_lineEdit.setText('0')
+            self.econ_val_changed()
+            table1['Gvmnt Owned LCOE ($/MWh)'].append(float(self.lvl_cost_lineEdit.text()))            
+            table1['Gvmnt Life Cycle Cost ($million)'].append(
+                float(f'{float("".join([x for x in self.econ_owner_LCC_lineEdit.text() if x != ","]))/1e6:.2f}'))
+            table1['Gvmnt Total Savings ($million)'].append(
+                float(f'{float("".join([x for x in self.econ_owner_savings_lineEdit.text() if x != ","]))/1e6:.2f}')
+            )
+            table1['Gvmnt Simple Payback (yrs)'].append(float(self.simp_payback_lineEdit.text()))
+            self.econ_energy_storage_lineEdit.setText('20')
+            self.econ_val_changed()
+            table1['Gvmnt Owned LCOE, with battery Storage ($/MWh)*'].append(float(self.lvl_cost_lineEdit.text()))  
+            self.econ_energy_storage_lineEdit.setText('0')
+            self.third_party_radioButton.setChecked(True)
+            self.owner_switch()
+
+            table1['3rdP Owned LCOE ($/MWh)'].append(float(self.lvl_cost_lineEdit.text()))            
+            table1['3rdP Life Cycle Cost ($million)'].append(
+                float(f'{float("".join([x for x in self.econ_owner_LCC_lineEdit.text() if x != ","]))/1e6:.2f}'))
+            table1['3rdP Total Savings ($million)'].append(
+                float(f'{float("".join([x for x in self.econ_owner_savings_lineEdit.text() if x != ","]))/1e6:.2f}')
+            )
+            table1['3rdP Simple Payback (yrs)'].append(float(self.simp_payback_lineEdit.text()))
+            self.econ_energy_storage_lineEdit.setText('20')
+            self.econ_val_changed()
+            table1['3rdP Owned LCOE, with battery Storage ($/MWh)*'].append(float(self.lvl_cost_lineEdit.text()))  
+            self.econ_energy_storage_lineEdit.setText('0')
+            self.gov_radioButton.setChecked(True)
+            self.owner_switch()            
+
+        table1 = pd.DataFrame.from_dict(table1)
+        return table1
 
 
 if __name__ == "__main__":
