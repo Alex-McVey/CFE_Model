@@ -202,7 +202,7 @@ class buildCFEWorker(QObject):
             (cur_dict['optical_eff']/100)*(cur_dict['elec_eff']/100)/1000.  # The 1.0 is 1 kWh/ft2/day of radiation. No idea why
         # calculate
         self.frpp_df['Concentrating Solar Power (kW)'] = dmy.tolist()
-        self.frpp_df['Annual Concentrating Solar Power (kWh)'] = self.frpp_df['Concentrating Solar Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
+        self.frpp_df['Annual Concentrating Solar Power (kWh/yr)'] = self.frpp_df['Concentrating Solar Power (kW)'] * 24 * 365 * (cur_dict['capacity_factor']/100.)
 
         ''' GeoThermal '''        
         cur_dict = self.model_assump['geo_therm']['system']
@@ -742,7 +742,7 @@ class MainWindow(QMainWindow):
                          self.frpp_df['Wind Power (kW)'].to_numpy(), 
                          self.frpp_df['Geothermal Power (kW)'].to_numpy() ]).transpose()
         energy = np.array([self.frpp_df['Annual Ground Solar Power (kWh/yr)'].to_numpy(), 
-                          self.frpp_df['Annual Concentrating Solar Power (kWh)'].to_numpy(), 
+                          self.frpp_df['Annual Concentrating Solar Power (kWh/yr)'].to_numpy(), 
                           self.frpp_df['Annual Wind Power (kWh/yr)'].to_numpy(), 
                           self.frpp_df['Annual Geothermal Power (kWh/yr)'].to_numpy()]).transpose()
         # Vacant Land
@@ -1057,7 +1057,7 @@ class MainWindow(QMainWindow):
                                 'Annual Average Wind Speed (m/s)', 'Annual Solar Radiation kWh/m2/day', 'Rooftop Solar Power (kW)', 
                                 'Ground Solar Power (kW)', 'Annual Rooftop Solar Power (kWh/yr)', 'Annual Ground Solar Power (kWh/yr)', 
                                 'N Wind Turbines', 'Wind Power (kW)', 'Annual Wind Power (kWh/yr)', 'Concentrating Solar Power (kW)', 
-                                'Annual Concentrating Solar Power (kWh)', 'Geothermal Power (kW)', 'Annual Geothermal Power (kWh/yr)', 
+                                'Annual Concentrating Solar Power (kWh/yr)', 'Geothermal Power (kW)', 'Annual Geothermal Power (kWh/yr)', 
                                 'Fuel Cell (kW)', 'Annual Fuel Cell (kWh/yr)', 'Ground Solar Power Built', 'Concentrating Solar Power Built(kW)', 
                                 'Wind Power Built (kW)', 'Geothermal Power Built (kW)', 'Ground Solar Energy Built (kWh/yr)', 
                                 'Concentrating Solar Energy Built (kWh)', 'Wind Energy Built (kWh/yr)', 'Geothermal Energy Built (kWh/yr)', 
@@ -1202,7 +1202,7 @@ class MainWindow(QMainWindow):
         if folder:
             self.output_folder = folder
             now = datetime.now()
-            new_folder = os.path.join(folder, f"CFE_Export_{now.year}{now.month}{now.day}{now.hour}{now.minute}")
+            new_folder = os.path.join(folder, f"{self.agency_code()}_Export_{now.year}{now.month}{now.day}{now.hour}{now.minute}")
             if not os.path.exists(new_folder):
                 os.mkdir(new_folder)
 
@@ -1853,8 +1853,8 @@ class MainWindow(QMainWindow):
             f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Number of sites built: {n_conc_sol_built}</span></p>\n"
             "<p "
                                     f"style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Potential: {self.frpp_df['Concentrating Solar Power (kW)'].sum()*0.001:,.0f} MW</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation: {self.frpp_df['Annual Concentrating Solar Power (kWh)'].sum()*0.001:,.0f} MWh</span></p>\n"
-            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand: {(self.frpp_df['Annual Concentrating Solar Power (kWh)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:.1f}%</span></p></body></html>", None))     
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Total Annual Generation: {self.frpp_df['Annual Concentrating Solar Power (kWh/yr)'].sum()*0.001:,.0f} MWh</span></p>\n"
+            f"<p style=\"  -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; color:#000000;\">Percent of Agency Demand: {(self.frpp_df['Annual Concentrating Solar Power (kWh/yr)'].sum()*0.001)/self.agency_energy_data['Electricity (MWh)'].values[0]*100:.1f}%</span></p></body></html>", None))     
 
     def setup_econ_page(self)->None:  
         # Block Signals
@@ -1943,7 +1943,7 @@ class MainWindow(QMainWindow):
             elif cfe_text == "Hydrogen Fuel Cells":
                 return 'Annual Fuel Cell (kWh/yr)'
             elif cfe_text == "Concentrating Solar":
-                return 'Annual Concentrating Solar Power (kWh)'
+                return 'Annual Concentrating Solar Power (kWh/yr)'
         
     def assump_from_econ_cfe(self):        
         cfe_text = self.econ_cfe_comboBox.currentText()
