@@ -635,6 +635,7 @@ class MainWindow(QMainWindow):
         self.landing_page.repaint()
         time.sleep(1)
         self.stackedWidget.setCurrentIndex(1)
+        self.statusbar.showMessage("", 30000)
 
     def launch_model_assump_dlg(self):
         dlg = model_assump_dlg(self.model_assump, color_red=self.assmpt_dlf_errors)
@@ -700,6 +701,7 @@ class MainWindow(QMainWindow):
             else:
                 self.agency_price_data = agency_price_data.loc[(agency_price_data['Agency'] == str(self.agency_comboBox.currentText()))]
 
+        self.statusbar.showMessage("Building CFE Model", 30000)
         self.toggle_cfe_running(True)
         
         build_model = buildCFEWorker(self.frpp_df.copy(), self.agency_energy_data.copy(), 
@@ -1207,14 +1209,81 @@ class MainWindow(QMainWindow):
                 os.mkdir(new_folder)
 
             out = self.frpp_df.copy()
-            out = out.drop(['Ground Solar Power Built','Concentrating Solar Power Built(kW)', 'Wind Power Built (kW)', 
-                      'Geothermal Power Built (kW)','Ground Solar Energy Built (kWh/yr)',
-                      'Concentrating Solar Energy Built (kWh)','Wind Energy Built (kWh/yr)',
-                      'Geothermal Energy Built (kWh/yr)'], axis=1)
+            out = out[["Reporting Agency",
+                       "Real Property Unique Identifier",
+                       "US/Foreign",
+                       "State Name",
+                       "Zip Code",
+                       "Latitude",
+                       "Longitude",
+                       "Real Property Type",
+                       "Real Property Use",
+                       "Asset Status",
+                       "Acres",
+                       "Square Feet (Buildings)",
+                       "est_num_stories",
+                       "est_rooftop_area_sqft",
+                       "Geothermal_CLASS",
+                       "Annual Average Wind Speed (m/s)",
+                       "Annual Solar Radiation kWh/m2/day",
+                       "eGRID",
+                       "Balancing Authority ID",
+                       "Balancing Authority",
+                       "N Wind Turbines"]]
             out = out.set_index('Real Property Unique Identifier')
-            # out.to_json(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Data.json"),orient="index",indent=4)
-            self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))
+            out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Lookup.csv"))
+            
+            rsol = self.frpp_df[["Real Property Unique Identifier",
+                      "Annual Rooftop Solar Power (kWh/yr)",
+                      "Rooftop Solar Power (kW)"]].copy()
+            gsol = self.frpp_df[["Real Property Unique Identifier",
+                      "Annual Ground Solar Power (kWh/yr)",
+                      "Ground Solar Power (kW)",
+                      "Ground Solar Energy Built (kWh/yr)"]].copy()
+            csol = self.frpp_df[["Real Property Unique Identifier",
+                      "Annual Concentrating Solar Power (kWh/yr)",
+                      "Concentrating Solar Power (kW)",
+                      "Concentrating Solar Energy Built (kWh)"]].copy()
+            geo = self.frpp_df[["Real Property Unique Identifier",
+                      "Geothermal Power (kW)",
+                      "Annual Geothermal Power (kWh/yr)",
+                      "Geothermal Energy Built (kWh/yr)"]].copy()
+            wind = self.frpp_df[["Real Property Unique Identifier",
+                      "Wind Power (kW)",
+                      "Annual Wind Power (kWh/yr)",
+                      "Wind Energy Built (kWh/yr)"]].copy()
+            fcel = self.frpp_df[["Real Property Unique Identifier",
+                      "Fuel Cell (kW)",
+                      "Annual Fuel Cell (kWh/yr)"]].copy()
+            rsol['Annual Built Energy Generation (kWh)'] = rsol['Annual Rooftop Solar Power (kWh/yr)'].values.tolist()
+            fcel['Annual Built Energy Generation (kWh)'] = fcel['Annual Fuel Cell (kWh/yr)'].values.tolist()
+
+            rsol["Resource"] = ["Rooftop Solar"]*rsol.shape[0]
+            gsol["Resource"] = ["Ground Solar"]*rsol.shape[0]
+            csol["Resource"] = ["Concentrating Solar"]*rsol.shape[0]
+            geo["Resource"] = ["Geothermal"]*rsol.shape[0]
+            wind["Resource"] = ["Wind"]*rsol.shape[0]
+            fcel["Resource"] = ["Fuel Cell"]*rsol.shape[0]
+
+            rsol = rsol.rename(columns={"Annual Rooftop Solar Power (kWh/yr)": "Annual Standalone Energy Generation (kWh)", "Rooftop Solar Power (kW)": "Power Rating (kW)"})
+            gsol = gsol.rename(columns={"Annual Ground Solar Power (kWh/yr)": "Annual Standalone Energy Generation (kWh)", "Ground Solar Power (kW)": "Power Rating (kW)", "Ground Solar Energy Built (kWh/yr)": "Annual Built Energy Generation (kWh)"})
+            csol = csol.rename(columns={"Annual Concentrating Solar Power (kWh/yr)": "Annual Standalone Energy Generation (kWh)", "Concentrating Solar Power (kW)": "Power Rating (kW)", "Concentrating Solar Energy Built (kWh)": "Annual Built Energy Generation (kWh)"})
+            geo = geo.rename(columns={"Annual Geothermal Power (kWh/yr)":  "Annual Standalone Energy Generation (kWh)", "Geothermal Power (kW)": "Power Rating (kW)", "Geothermal Energy Built (kWh/yr)": "Annual Built Energy Generation (kWh)"})
+            wind = wind.rename(columns={"Annual Wind Power (kWh/yr)": "Annual Standalone Energy Generation (kWh)", "Wind Power (kW)": "Power Rating (kW)", "Wind Energy Built (kWh/yr)": "Annual Built Energy Generation (kWh)"})
+            fcel = fcel.rename(columns={"Annual Fuel Cell (kWh/yr)": "Annual Standalone Energy Generation (kWh)", "Fuel Cell (kW)": "Power Rating (kW)"})
+
+            rsol = rsol.set_index('Real Property Unique Identifier')
+            gsol = gsol.set_index('Real Property Unique Identifier')
+            csol = csol.set_index('Real Property Unique Identifier')
+            geo = geo.set_index('Real Property Unique Identifier')
+            wind = wind.set_index('Real Property Unique Identifier')
+            fcel = fcel.set_index('Real Property Unique Identifier')
+            out = pd.concat([rsol, gsol, csol, geo, wind, fcel])
+            out = out[['Resource','Power Rating (kW)','Annual Standalone Energy Generation (kWh)','Annual Built Energy Generation (kWh)']]
+            out = out.sort_index()
             out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Data.csv"))
+
+            self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))            
             self.econ_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Econ_Data.csv"))
             self.cfe_use_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Transition.csv"))
             table1 = self.build_econ_tableout()
