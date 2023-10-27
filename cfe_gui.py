@@ -434,6 +434,7 @@ class MainWindow(QMainWindow):
             | ((self.frpp_df['Real Property Type'] == 'Structure') & (self.frpp_df['Real Property Use'] == 'Parking Structures')))]
         
         # Clean Data
+        self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: '0'*(9-len(x))+x if len(x) > 5 and len(x) < 9 else x)
         self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: x[0:5] if len(x) > 5 else int(x))
         self.frpp_df = self.frpp_df.astype({'Zip Code': int})
         self.pg1_progressBar.setValue(int(1/7*100))
