@@ -1282,6 +1282,9 @@ class MainWindow(QMainWindow):
             out = pd.concat([rsol, gsol, csol, geo, wind, fcel])
             out = out[['Resource','Power Rating (kW)','Annual Standalone Energy Generation (kWh)','Annual Built Energy Generation (kWh)']]
             out = out.sort_index()
+            out = out[~out["Power Rating (kW)"].isna() &
+                  ~out["Annual Standalone Energy Generation (kWh)"].isna() &
+                  ~out["Annual Built Energy Generation (kWh)"].isna()]
             out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Data.csv"))
 
             self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))            
