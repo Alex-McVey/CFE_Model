@@ -1210,7 +1210,9 @@ class MainWindow(QMainWindow):
                 os.mkdir(new_folder)
 
             out = self.frpp_df.copy()
+            out["Reporting Agency Code"] = [self.agency_code()]*out.shape[0]
             out = out[["Reporting Agency",
+                       "Reporting Agency Code",
                        "Real Property Unique Identifier",
                        "US/Foreign",
                        "State Name",
