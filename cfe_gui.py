@@ -101,7 +101,7 @@ class buildCFEWorker(QObject):
         count = 0
         for qq in np.where(filter_)[0]:  
             land_used = cur_dict['perc_land_used']   
-            if self.frpp_df.iloc[qq]['Real Property Use'] == 'Research and Development':
+            if self.frpp_df.iloc[qq]['Real Property Use'] != 'Vacant':
                 land_used = 25.0
             if cur_dict['use_lat_tilt']:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
