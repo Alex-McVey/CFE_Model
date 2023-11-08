@@ -1591,7 +1591,7 @@ class MainWindow(QMainWindow):
                     data_out['Real Property Use'].append(df_temp.iloc[qq]['Real Property Use']) 
                     data_out['Balancing Authority ID'].append(df_temp.iloc[qq]['Balancing Authority ID'])
                     data_out['CFE Options Available'].append(cfe_string[:-2])
-                    data_out[f'Percent of BA Energy'].append((float(df_temp.iloc[qq]['Sort Total'])/value)*100)
+                    data_out[f'Percent of BA Energy'].append((float(df_temp.iloc[qq]['Sort Total'])/(value*1e6)))
                     data_out['Potential Generation (MWh/year)'].append(float(df_temp.iloc[qq]['Sort Total'])/1000)
                 
                 out = pd.DataFrame.from_dict(data_out)
