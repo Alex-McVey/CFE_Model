@@ -2482,7 +2482,8 @@ class MainWindow(QMainWindow):
                 float("".join([x for x in sub[sub.index(':',sub.find('Total Annual Generation'))+1:
                         sub.index('MW',sub.find('Total Annual Generation:'))] if x != ","])))
             table1['Total Potential CFE Capacity (MW)'].append(
-                float(sub[sub.index(':',sub.find('Total Potential'))+1:sub.index('MW',sub.find('Total Potential'))]))
+                float("".join([x for x in sub[sub.index(':',sub.find('Total Potential'))+1:
+                        sub.index('MW',sub.find('Total Potential'))] if x != ","])))
             table1['Perc of Total Agency Demand (%)'].append(
                 float(sub[sub.index(':',sub.find('Percent of Agency Demand'))+1:sub.index('%',sub.find('Percent of Agency Demand'))]))
             if self.econ_cfe_comboBox.currentText() != key:
