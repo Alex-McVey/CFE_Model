@@ -19,6 +19,7 @@ import time
 from datetime import datetime
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import logging
 # import timeit
 # import debugpy
@@ -59,8 +60,8 @@ class buildCFEWorker(QObject):
         self.dmy2 = None
 
     def build_cfe_model(self):
-        # debugpy.debug_this_thread()        
-        ''' Solar Power '''        
+        #debugpy.debug_this_thread()        
+        ''' Solar Power ''' 
         cur_dict = self.model_assump['solar']['system']        
         # Calculate the A.C. Roof-top solar power  
         dmy = np.zeros(self.frpp_df.shape[0])
@@ -70,7 +71,7 @@ class buildCFEWorker(QObject):
         filter_ = ~self.frpp_df['est_rooftop_area_sqft'].isna()
         solar_count = filter_.sum()
         count = 0                
-        for qq in np.where(filter_)[0]: 
+        for qq in np.where(filter_)[0]:             
             if cur_dict['use_lat_tilt']:
                 solar_calc = solar_pv(self.frpp_df.iloc[qq]['Latitude'], self.frpp_df.iloc[qq]['Longitude'], 
                                     self.frpp_df.iloc[qq]['est_rooftop_area_sqft'], system_loss=cur_dict['system_losses'],
@@ -403,16 +404,48 @@ class MainWindow(QMainWindow):
         self.landing_page.repaint()
         # ---
         # we only want the following columns  
-        column_names = ['Reporting Agency', 'Real Property Unique Identifier', 'State Name', 'US/Foreign', 'Zip Code',
-                        'Latitude', 'Longitude', 'Real Property Type', 'Real Property Use', 'Asset Status','Acres', 
-                        'Square Feet (Buildings)', 'Square Feet Unit of Measure', 'Unit Of Measure',
-                        'Asset Height Range', 'Asset Height']
-        #pd.Int64Dtype()
-        column_dtype = {'Reporting Agency': str, 'Real Property Unique Identifier': str, 'State Name': str, 'US/Foreign': str,
-                        'Zip Code':str,'Latitude': np.double, 'Longitude': np.double, 'Real Property Type': str, 
-                        'Real Property Use': str, 'Asset Status': str, 'Acres': np.double, 'Square Feet (Buildings)': np.double, 
-                        'Square Feet Unit of Measure': str, 'Unit Of Measure': str,
-                        'Asset Height Range': str, 'Asset Height': np.double}
+        column_names = ['Reporting Agency',
+                        'Reporting Agency Code',
+                        'Real Property Unique Identifier',
+                        'Installation Name',
+                        'Real Property Type',
+                        'Legal Interest Indicator',
+                        'Real Property Use',
+                        'Asset Status',
+                        'City Name', 
+                        'State Name', 
+                        'US/Foreign', 
+                        'Zip Code', 
+                        'Latitude', 
+                        'Longitude', 
+                        'Acres', 
+                        'Square Feet (Buildings)', 
+                        'Square Feet Unit of Measure',
+                        'Unit Of Measure', 
+                        'Asset Height Range', 
+                        'Asset Height']
+        
+        column_dtype = {'Reporting Agency': str,
+                        'Reporting Agency Code': np.int32,
+                        'Real Property Unique Identifier': str,
+                        'Installation Name': str,
+                        'Real Property Type': str,
+                        'Legal Interest Indicator': str,
+                        'Real Property Use': str,
+                        'Asset Status': str,
+                        'City Name': str, 
+                        'State Name': str, 
+                        'US/Foreign': str, 
+                        'Zip Code': str, 
+                        'Latitude': np.double, 
+                        'Longitude': np.double, 
+                        'Acres': np.double, 
+                        'Square Feet (Buildings)': np.double, 
+                        'Square Feet Unit of Measure': str,
+                        'Unit Of Measure': str, 
+                        'Asset Height Range': str, 
+                        'Asset Height': np.double}       
+       
         # check if the path is a csv or excel
         if str(self.frpp_path.text()).split(".")[-1] == "csv":
             self.frpp_df = pd.read_csv(str(self.frpp_path.text()), header=0, 
@@ -420,7 +453,7 @@ class MainWindow(QMainWindow):
         else:
             self.frpp_df = pd.read_excel(str(self.frpp_path.text()),usecols=column_names,
                                           dtype=column_dtype)
-            
+        
         # Apply agreed filters 
         # - only US and US Territories; No "Disposed" assets
         # - all buildings
@@ -434,13 +467,141 @@ class MainWindow(QMainWindow):
             | ((self.frpp_df['Real Property Type'] == 'Structure') & (self.frpp_df['Real Property Use'] == 'Parking Structures')))]
         
         # Clean Data
+        default_latlong = { "ALABAMA" : [32.799716, -86.463988], 
+					"ALASKA" : [61.177571, -149.632192], 
+					"ARIZONA" : [34.745260, -112.011233],
+                    "ARKANSAS" : [35.024453, -92.233323], 
+					"CALIFORNIA" : [37.616908, -120.256676], 
+					"COLORADO" : [39.175473, -105.739671],
+                    "CONNECTICUT" : [41.669164, -72.695918], 
+					"DELAWARE" : [38.831066, -75.465720],
+					"DISTRICT OF COLUMBIA": [38.909386, -77.029473],
+                    "FLORIDA" : [28.426448, -81.698299], 
+					"GEORGIA" : [33.175102, -83.372588], 
+					"HAWAII" : [20.805245, -156.350347],
+                    "IDAHO" : [44.165258, -114.631299], 
+					"ILLINOIS" : [40.080079, -89.133126],
+					"INDIANA" : [39.858025, -85.921388],
+                    "IOWA" : [42.200591, -93.558630],
+					"KANSAS" : [38.713348, -98.149176], 
+					"KENTUCKY" : [37.715068, -84.479490],
+                    "LOUISIANA" : [31.333600, -92.556023], 
+					"MAINE" : [44.607726, -69.249297],
+					"MARYLAND" : [39.330602, -77.102357],
+                    "MASSACHUSETTS" : [42.390905, -72.097394], 
+					"MICHIGAN" : [43.124825, -84.411691], 
+					"MINNESOTA" : [45.492360, -94.713232],
+                    "MISSISSIPPI" : [32.757161, -89.677783], 
+					"MISSOURI" : [38.612528, -92.533021],
+					"MONTANA" : [47.258592, -109.188028],
+                    "NEBRASKA" : [41.298766, -99.442043],
+					"NEVADA" : [39.460964, -116.757267],
+					"NEW HAMPSHIRE" : [43.497900, -71.590629],
+                    "NEW JERSEY" : [40.430106, -74.450889], 
+					"NEW MEXICO" : [34.665566, -105.946359], 
+					"NEW YORK" : [42.791234, -74.758345],
+                    "NORTH CAROLINA" : [35.872122, -79.426649],
+					"NORTH DAKOTA" : [47.128993, -100.567045],
+					"OHIO" : [40.230181, -82.693298],
+                    "OKLAHOMA" : [35.239393, -97.177163],
+					"OREGON" : [44.157321, -120.459153], 
+					"PENNSYLVANIA" : [40.636451, -77.614282],
+                    "RHODE ISLAND" : [41.782761, -71.564446], 
+					"SOUTH CAROLINA" : [34.099170, -80.813928],
+                    "SOUTH DAKOTA" : [44.224504, -100.552313],
+					"TENNESSEE" : [35.885001, -86.018699],
+					"TEXAS" : [32.273130, -99.174414],
+                    "UTAH" : [39.461875, -111.524891], 
+					"VERMONT" : [43.928612, -72.821097],
+					"VIRGINIA" : [37.673139, -78.129002],
+                    "WASHINGTON" : [47.149548, -120.129465], 
+					"WEST VIRGINIA" : [38.678997, -80.491353], 
+					"WISCONSIN" : [44.058856, -89.450369], 
+					"WYOMING" : [43.193688, -107.311904]} 
         self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: '0'*(9-len(x))+x if len(x) > 5 and len(x) < 9 else x)
         self.frpp_df['Zip Code'] = self.frpp_df['Zip Code'].apply(lambda x: x[0:5] if len(x) > 5 else int(x))
         self.frpp_df = self.frpp_df.astype({'Zip Code': int})
+
+        # Fill in missing lat long
+        lat = np.zeros(self.frpp_df.shape[0])
+        lon = np.zeros(self.frpp_df.shape[0])
+        lat[:] = [default_latlong[state][0] if np.isnan(latitude) and type(state) == str else 
+                  latitude for latitude, state in self.frpp_df[['Latitude', 'State Name']].values]
+        lon[:] = [default_latlong[state][1] if np.isnan(longitude) and type(state) == str else 
+                  longitude for longitude, state in self.frpp_df[['Longitude', 'State Name']].values]        
+        self.frpp_df['Latitude'] = lat.tolist() 
+        self.frpp_df['Longitude'] = lon.tolist() 
+        self.frpp_df = self.frpp_df.drop(self.frpp_df[(self.frpp_df['Latitude'].isna()) & (self.frpp_df['Longitude'].isna())].index)
+
+        
         self.pg1_progressBar.setValue(int(1/7*100))
         self.statusbar.showMessage("Estimating Rooftop Area", 50000)
         self.landing_page.update()
         self.landing_page.repaint()
+
+        # Add state abbreviation for cadmus
+        self.frpp_df['State Name'] = self.frpp_df['State Name'].apply(lambda x: x.upper() if type(x) == str else x)
+        state_abrev_dict = {   
+            "Alabama": "AL",
+            "Alaska": "AK",
+            "Arizona": "AZ",
+            "Arkansas": "AR",
+            "American Samoa": "AS",
+            "California": "CA",
+            "Colorado": "CO",
+            "Connecticut": "CT",
+            "Delaware": "DE",
+            "District of Columbia": "DC",
+            "Florida": "FL",
+            "Georgia": "GA",
+            "Guam": "GU",
+            "Hawaii": "HI",
+            "Idaho": "ID",
+            "Illinois": "IL",
+            "Indiana": "IN",
+            "Iowa": "IA",
+            "Kansas": "KS",
+            "Kentucky": "KY",
+            "Louisiana": "LA",
+            "Maine": "ME",
+            "Maryland": "MD",
+            "Massachusetts": "MA",
+            "Michigan": "MI",
+            "Minnesota": "MN",
+            "Mississippi": "MS",
+            "Missouri": "MO",
+            "Montana": "MT",
+            "Nebraska": "NE",
+            "Nevada": "NV",
+            "New Hampshire": "NH",
+            "New Jersey": "NJ",
+            "New Mexico": "NM",
+            "New York": "NY",
+            "North Carolina": "NC",
+            "North Dakota": "ND",
+            "Northern Mariana Islands": "MP",
+            "Ohio": "OH",
+            "Oklahoma": "OK",
+            "Oregon": "OR",
+            "Pennsylvania": "PA",
+            "Puerto Rico": "PR",
+            "Rhode Island": "RI",
+            "South Carolina": "SC",
+            "South Dakota": "SD",
+            "Tennessee": "TN",
+            "Texas": "TX",
+            "Trust Territories": "TT",
+            "Utah": "UT",
+            "Vermont": "VT",
+            "Virginia": "VA",
+            "Virgin Islands": "VI",
+            "Washington": "WA",
+            "West Virginia": "WV",
+            "Wisconsin": "WI",
+            "Wyoming": "WY"}   
+        state_abrev_dict = {key.upper(): item for key, item in state_abrev_dict.items()}        
+        state_abrev = [state_abrev_dict[state] if type(state) == str else "Blank" for state in self.frpp_df['State Name'].values]
+        self.frpp_df['State Abbreviation'] = state_abrev
 
         # Estimate Rooftop Area for Buildings
         '''        
@@ -455,20 +616,23 @@ class MainWindow(QMainWindow):
             - est_rooftop_area_sqft
         - Note: FRPP column "Square Feet Unit of Measure" distinguishes whether Sq Ft is reported in gross or rentable sq ft.
         '''
-        height_to_stories = {'Height > 0 feet and <= 30 feet above ground level': 1,
+        height_to_stories = {'Height > 0 feet and <= 30 feet above ground level': 2,
                              'Height > 30 feet and <= 100 feet above ground level': 6, 
                              'Height > 100 feet and < 200 feet above ground level': 13, 
                              'Height >= 200 feet above ground level': 22}
         
         self.frpp_df['est_num_stories'] = list(np.zeros((self.frpp_df.shape[0],1)))
         self.frpp_df['est_rooftop_area_sqft'] = list(np.zeros((self.frpp_df.shape[0],1)))
+        self.frpp_df['height_flag'] = np.zeros((self.frpp_df.shape[0]), dtype=bool)
         for index, row in self.frpp_df.iterrows():
             if row['Real Property Type'] == 'Building':
                 if not np.isnan(row['Asset Height']) and row['Asset Height'] != 0:
                     self.frpp_df.at[index, 'est_num_stories'] = round(row['Asset Height']/12, 0)
                 elif isinstance(row['Asset Height Range'], str):
+                    self.frpp_df.at[index, 'height_flag'] = True
                     self.frpp_df.at[index, 'est_num_stories'] = height_to_stories[row['Asset Height Range']]
                 else:
+                    self.frpp_df.at[index, 'height_flag'] = True
                     self.frpp_df.at[index, 'est_num_stories'] = 2
                 self.frpp_df.at[index, 'est_rooftop_area_sqft'] = row['Square Feet (Buildings)'] / self.frpp_df.at[index, 'est_num_stories']
             else:
@@ -1209,16 +1373,17 @@ class MainWindow(QMainWindow):
             if not os.path.exists(new_folder):
                 os.mkdir(new_folder)
 
-            out = self.frpp_df.copy()
-            out["Reporting Agency Code"] = [self.agency_code()]*out.shape[0]
+            out = self.frpp_df.copy()            
             out = out[["Reporting Agency",
                        "Reporting Agency Code",
                        "Real Property Unique Identifier",
                        "US/Foreign",
                        "State Name",
+                       "State Abbreviation",
                        "Zip Code",
                        "Latitude",
                        "Longitude",
+                       "Legal Interest Indicator",
                        "Real Property Type",
                        "Real Property Use",
                        "Asset Status",
@@ -1289,9 +1454,156 @@ class MainWindow(QMainWindow):
                   ~out["Annual Built Energy Generation (kWh)"].isna()]
             out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Data.csv"))
 
+            # Table 3 & 4
+            onsite = [  'Annual Rooftop Solar Power (kWh/yr)',
+                        'Annual Ground Solar Power (kWh/yr)', 'Annual Wind Power (kWh/yr)',
+                        'Annual Geothermal Power (kWh/yr)',
+                        'Annual Concentrating Solar Power (kWh/yr)' ]
+            rename = {  'Annual Rooftop Solar Power (kWh/yr)': 'Annual Rooftop Solar Power (GWh/yr)',
+                        'Annual Ground Solar Power (kWh/yr)': 'Annual Ground Solar Power (GWh/yr)', 
+                        'Annual Wind Power (kWh/yr)': 'Annual Wind Power (GWh/yr)',
+                        'Annual Fuel Cell (kWh/yr)': 'Annual Fuel Cell (GWh/yr)', 
+                        'Annual Geothermal Power (kWh/yr)': 'Annual Geothermal Power (GWh/yr)',
+                        'Annual Concentrating Solar Power (kWh/yr)': 'Annual Concentrating Solar Power (GWh/yr)' }
+            dtype = {'Agency': str, 'Agency Code': str, 'State': str, 'Balancing Authority ID': str, 
+                     'Balancing Authority': str, 'Utility Name' : str, 'eGRID Subregion': str, 
+                     'Market Type': str, 'Goal Subject (Y/N)': str, 'Year': np.int32, 
+                     'Load Growth Scenario': str, 'CFE Scenario': str, 
+                     'Electricity Use (MWh)': np.double, 'Grid-Supplied CFE (MWh)': np.double, 
+                     'Per Grid CFE': np.double, 'Legacy CFE (MWh)': np.double, 'Per Legacy CFE': np.double, 
+                     'CFE Procurement (MWh)': np.double, 'Per Procured CFE': np.double}
+            task2_data = pd.read_csv(os.path.join(DATA_PATH,'task2_data.csv'), dtype=dtype)
+            task2_data = task2_data[task2_data['Agency'] == self.agency_code()]
+
+            CFE_egrid_gap = task2_data.groupby('eGRID Subregion')['CFE Procurement (MWh)'].sum().reset_index()
+            CFE_egrid_gap = CFE_egrid_gap.sort_values(by='CFE Procurement (MWh)', ascending=False)
+            CFE_egrid_gap.columns = ['eGRID Subregion', 'CFE Gap']
+            egrid_production = self.frpp_df.groupby('eGRID')[onsite].sum()
+            egrid_production.reset_index(inplace = True)
+            egrid_graph = CFE_egrid_gap.merge(egrid_production, how = 'left', left_on = 'eGRID Subregion', right_on = 'eGRID')
+            # Convert to GWh
+            for x in onsite:
+                egrid_graph[x] = egrid_graph[x]/1000000
+            egrid_graph['CFE Gap'] = egrid_graph['CFE Gap']/1000
+            egrid_graph.rename(columns=rename, inplace=True)
+            egrid_graph.drop(columns=['eGRID'], axis=1, inplace=True)
+            egrid_graph =  egrid_graph[~egrid_graph["Annual Rooftop Solar Power (GWh/yr)"].isna() &
+                                       ~egrid_graph["Annual Ground Solar Power (GWh/yr)"].isna() &
+                                       ~egrid_graph["Annual Wind Power (GWh/yr)"].isna() & 
+                                       ~egrid_graph["Annual Geothermal Power (GWh/yr)"].isna() &
+                                       ~egrid_graph["Annual Concentrating Solar Power (GWh/yr)"].isna()]
+            egrid_graph = egrid_graph.set_index('eGRID Subregion')
+
+            CFE_BA_gap = task2_data.groupby('Balancing Authority ID')['CFE Procurement (MWh)'].sum().reset_index()
+            CFE_BA_gap = CFE_BA_gap.sort_values(by='CFE Procurement (MWh)', ascending=False)
+            CFE_BA_gap.columns = ['Balancing Authority ID', 'CFE Gap']
+            BA_production = self.frpp_df.groupby('Balancing Authority ID')[onsite].sum()
+            BA_production.reset_index(inplace = True)
+            ba_graph = CFE_BA_gap.merge(BA_production, on = 'Balancing Authority ID')
+            # Convert to GWh
+            for x in onsite:
+                ba_graph[x] = ba_graph[x]/1000000
+            ba_graph['CFE Gap'] = ba_graph['CFE Gap']/1000
+            ba_graph.rename(columns=rename, inplace=True)
+            ba_graph =  ba_graph[~ba_graph["Annual Rooftop Solar Power (GWh/yr)"].isna() &
+                                 ~ba_graph["Annual Ground Solar Power (GWh/yr)"].isna() &
+                                 ~ba_graph["Annual Wind Power (GWh/yr)"].isna() & 
+                                 ~ba_graph["Annual Geothermal Power (GWh/yr)"].isna() &
+                                 ~ba_graph["Annual Concentrating Solar Power (GWh/yr)"].isna()]
+            ba_graph = ba_graph.set_index('Balancing Authority ID')
+
+            egrid_graph.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table3.csv"))
+            ba_graph.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table4.csv"))
+
+            # Figure 2 & 3
+            fig_dict = {"Annual Rooftop Solar Power (GWh/yr)": ['gray', 'Roof-Top Solar PV'],
+                        "Annual Ground Solar Power (GWh/yr)": ['orange', 'Ground-mounted Solar PV'],
+                        "Annual Wind Power (GWh/yr)": ['blue', 'Wind'], 
+                        "Annual Geothermal Power (GWh/yr)": ['brown', 'Geothermal'],
+                        "Annual Concentrating Solar Power (GWh/yr)": ['purple', 'CSP']}
+            plt.rcdefaults()
+            # Bar's width
+            width = 0.15
+            for data in [egrid_graph.head(10), ba_graph.head(10)]:
+                use_list = []
+                for key in fig_dict.keys():
+                    if ba_graph[key].sum() > 0:
+                        use_list.append(key)
+                _, ax = plt.subplots(figsize = (8, 5))
+
+                # Data
+                egrid = data.index.to_list()
+                y_pos = np.arange(len(egrid))
+
+                ax.barh(y_pos, data['CFE Gap'], width, color = 'red', align='center', label = 'CFE Gap')
+                m = 1
+                for key in use_list:
+                    ax.barh(y_pos + width*m, data[key], width, color=fig_dict[key][0], label=fig_dict[key][1])
+                    m += 1
+                ax.set(yticks = y_pos + width, yticklabels = egrid)
+
+                ax.set_ylabel(str(data.index.name))
+                ax.invert_yaxis()  # labels read top-to-bottom
+                ax.set_xlabel('GWh')          
+                ax.legend() 
+                # ax.legend(bbox_to_anchor=(1.1, 1))
+                if 'eGRID' in data.index.name:
+                    plt.savefig(os.path.join(new_folder, f"figure2.png"))
+                else:
+                    plt.savefig(os.path.join(new_folder, f"figure3.png"))
+
+            # table 5, 6, & 7
+            cfe_dict = {'Rooftop Solar Power (kW)': 'Rooftop Solar', 
+                        'Ground Solar Power (kW)': 'Ground-Mounted Solar', 
+                        'Wind Power (kW)': 'Wind Power', 
+                        'Concentrating Solar Power (kW)': 'Concentrating Solar', 
+                        'Geothermal Power (kW)': 'Gethermal'}             
+            
+            df = self.frpp_df.copy()   
+            df['Sort Total'] = df['Total Energy (kWh)'] - df['Annual Fuel Cell (kWh/yr)']        
+            ba_totals = dict(zip(ba_graph.iloc[:3]['CFE Gap'].index.to_list(), ba_graph.iloc[:3]['CFE Gap'].to_list()))                
+            
+            table_num = 5
+            for key, value in ba_totals.items():
+                data_out = {'Real Property Unique Identifier': [],
+                        'State Name': [],
+                        'City Name': [],
+                        'Installation Name': [],
+                        'Real Property Type': [],
+                        'Real Property Use': [],
+                        'Balancing Authority ID': [],
+                        'CFE Options Available': [],
+                        'Percent of BA Energy': [],
+                        'Potential Generation (MWh/year)': []}
+                df_temp = df[df['Balancing Authority ID'] == key]
+                df_temp = df_temp.sort_values(by='Sort Total' , ascending=False)
+                count = min(10, len(df_temp))
+                for qq in range(count):
+                    cfe_string = ''
+                    for cfe, string in cfe_dict.items():
+                        if not np.isnan(df_temp.iloc[qq][cfe]):
+                            cfe_string += f"{string}, "
+                    data_out['Real Property Unique Identifier'].append(df_temp.iloc[qq]['Real Property Unique Identifier'])
+                    data_out['State Name'].append(df_temp.iloc[qq]['State Name']) 
+                    data_out['City Name'].append(df_temp.iloc[qq]['City Name']) 
+                    data_out['Installation Name'].append(df_temp.iloc[qq]['Installation Name']) 
+                    data_out['Real Property Type'].append(df_temp.iloc[qq]['Real Property Type']) 
+                    data_out['Real Property Use'].append(df_temp.iloc[qq]['Real Property Use']) 
+                    data_out['Balancing Authority ID'].append(df_temp.iloc[qq]['Balancing Authority ID'])
+                    data_out['CFE Options Available'].append(cfe_string[:-2])
+                    data_out[f'Percent of BA Energy'].append((float(df_temp.iloc[qq]['Sort Total'])/value)*100)
+                    data_out['Potential Generation (MWh/year)'].append(float(df_temp.iloc[qq]['Sort Total'])/1000)
+                
+                out = pd.DataFrame.from_dict(data_out)
+                out = out.set_index('Real Property Unique Identifier')
+                out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table{table_num}.csv"))
+                table_num += 1
+                
+
+
             self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))            
-            self.econ_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Econ_Data.csv"))
-            self.cfe_use_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Transition.csv"))
+            #self.econ_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Econ_Data.csv"))
+            #self.cfe_use_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Transition.csv"))
             table1 = self.build_econ_tableout()
             table1.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table1.csv"))
         else:
