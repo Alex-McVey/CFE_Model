@@ -19,6 +19,9 @@ specfiles = glob.glob("*.spec")
 for f in specfiles:
     os.remove(f)
 
+imgdr1 = os.path.join(os.getcwd(), 'images')
+imgdr2 = os.path.join('.','dist','CFE_Model','_internal','images')
+
 print('******************************** Calling PyInstaller to package .exe\n\n')
 script = os.path.join(os.getcwd(),"cfe_gui.py")
 
@@ -34,15 +37,14 @@ PyInstaller.__main__.run([
     script,
     '-nCFE_Model',
     '--onedir',
-    '--windowed'
+    '--windowed',
+    f'--icon={os.path.join(imgdr1,"CFE_Icon.ico")}'
 ])
 
 print('\n\n************************* Copying over missing files and directories\n\n')
 
 # --> images (copy)
 print('copying images directory')
-imgdr1 = os.path.join(os.getcwd(), 'images')
-imgdr2 = os.path.join('.','dist','CFE_Model','images')
 shutil.copytree(imgdr1,imgdr2)
 print('copying data directory')
 datadr1 = os.path.join(os.getcwd(), 'data')

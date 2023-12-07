@@ -49,7 +49,7 @@ class buildCFEWorker(QObject):
     result_signal = pyqtSignal(object)  
 
     def __init__(self, frpp_df, agency_energy_data, agency_price_data, model_assump):
-        super().__init__()
+        super().__init__()        
         self.frpp_df = frpp_df
         self.agency_energy_data = agency_energy_data
         self.agency_price_data = agency_price_data
@@ -235,6 +235,7 @@ class MainWindow(QMainWindow):
 
         # Load the user interface file
         loadUi(PROJECT_UI, self)
+        self.setWindowIcon(QIcon(os.path.join(PROJECT_PATH, "images", "CFE_Icon.ico")))
 
         # add status bar
         self.statusbar = self.statusBar()
@@ -465,6 +466,9 @@ class MainWindow(QMainWindow):
             & ((self.frpp_df['Real Property Type'] == 'Building')
             | ((self.frpp_df['Real Property Type'] == 'Land') & (self.frpp_df['Real Property Use'].isin(['Vacant', 'Office Building Locations', 'Research and Development'])))
             | ((self.frpp_df['Real Property Type'] == 'Structure') & (self.frpp_df['Real Property Use'] == 'Parking Structures')))]
+        self.frpp_df = self.frpp_df.loc[(self.frpp_df['Legal Interest Indicator'] == 'Owned') | 
+                                        (self.frpp_df['Legal Interest Indicator'] == 'Museum Trust') |
+                                        (self.frpp_df['Legal Interest Indicator'] == 'State Government-Owned')]
         
         # Clean Data
         default_latlong = { "ALABAMA" : [32.799716, -86.463988], 
@@ -525,9 +529,9 @@ class MainWindow(QMainWindow):
         # Fill in missing lat long
         lat = np.zeros(self.frpp_df.shape[0])
         lon = np.zeros(self.frpp_df.shape[0])
-        lat[:] = [default_latlong[state][0] if np.isnan(latitude) and type(state) == str else 
+        lat[:] = [default_latlong[state.upper()][0] if np.isnan(latitude) and type(state) == str else 
                   latitude for latitude, state in self.frpp_df[['Latitude', 'State Name']].values]
-        lon[:] = [default_latlong[state][1] if np.isnan(longitude) and type(state) == str else 
+        lon[:] = [default_latlong[state.upper()][1] if np.isnan(longitude) and type(state) == str else 
                   longitude for longitude, state in self.frpp_df[['Longitude', 'State Name']].values]        
         self.frpp_df['Latitude'] = lat.tolist() 
         self.frpp_df['Longitude'] = lon.tolist() 
@@ -619,7 +623,8 @@ class MainWindow(QMainWindow):
         height_to_stories = {'Height > 0 feet and <= 30 feet above ground level': 2,
                              'Height > 30 feet and <= 100 feet above ground level': 6, 
                              'Height > 100 feet and < 200 feet above ground level': 13, 
-                             'Height >= 200 feet above ground level': 22}
+                             'Height >= 200 feet above ground level': 22,
+                             'Asset Height is located under ground': 2}
         
         self.frpp_df['est_num_stories'] = list(np.zeros((self.frpp_df.shape[0],1)))
         self.frpp_df['est_rooftop_area_sqft'] = list(np.zeros((self.frpp_df.shape[0],1)))
@@ -627,9 +632,9 @@ class MainWindow(QMainWindow):
         for index, row in self.frpp_df.iterrows():
             if row['Real Property Type'] == 'Building':
                 if not np.isnan(row['Asset Height']) and row['Asset Height'] != 0:
-                    self.frpp_df.at[index, 'est_num_stories'] = round(row['Asset Height']/12, 0)
+                    self.frpp_df.at[index, 'est_num_stories'] = max(round(row['Asset Height']/12, 0),1)
                 elif isinstance(row['Asset Height Range'], str):
-                    self.frpp_df.at[index, 'height_flag'] = True
+                    self.frpp_df.at[index, 'height_flag'] = True                    
                     self.frpp_df.at[index, 'est_num_stories'] = height_to_stories[row['Asset Height Range']]
                 else:
                     self.frpp_df.at[index, 'height_flag'] = True
@@ -1193,6 +1198,8 @@ class MainWindow(QMainWindow):
         self.pg1_progressBar.setValue(0)
         self.build_cfe_progressBar.setVisible(False)
         self.time_left_label_label.setVisible(False)
+        self.build_cfe_progressBar.setValue(0)        
+        self.time_left_label_label.setText("")
 
         # Move to the first page
         self.actionExport_Results.setEnabled(False)
@@ -1454,6 +1461,12 @@ class MainWindow(QMainWindow):
                   ~out["Annual Built Energy Generation (kWh)"].isna()]
             out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Dashboard_Data.csv"))
 
+            self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))            
+            #self.econ_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Econ_Data.csv"))
+            #self.cfe_use_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Transition.csv"))
+            table1 = self.build_econ_tableout()
+            table1.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table1.csv"))
+
             # Table 3 & 4
             onsite = [  'Annual Rooftop Solar Power (kWh/yr)',
                         'Annual Ground Solar Power (kWh/yr)', 'Annual Wind Power (kWh/yr)',
@@ -1473,7 +1486,8 @@ class MainWindow(QMainWindow):
                      'Per Grid CFE': np.double, 'Legacy CFE (MWh)': np.double, 'Per Legacy CFE': np.double, 
                      'CFE Procurement (MWh)': np.double, 'Per Procured CFE': np.double}
             task2_data = pd.read_csv(os.path.join(DATA_PATH,'task2_data.csv'), dtype=dtype)
-            task2_data = task2_data[task2_data['Agency'] == self.agency_code()]
+            task2_data = task2_data[(task2_data['Agency'] == self.agency_code()) &
+                                    (task2_data['Balancing Authority ID'] != 'Unknown')]
 
             CFE_egrid_gap = task2_data.groupby('eGRID Subregion')['CFE Procurement (MWh)'].sum().reset_index()
             CFE_egrid_gap = CFE_egrid_gap.sort_values(by='CFE Procurement (MWh)', ascending=False)
@@ -1525,6 +1539,7 @@ class MainWindow(QMainWindow):
             # Bar's width
             width = 0.15
             for data in [egrid_graph.head(10), ba_graph.head(10)]:
+                xlim = -1
                 use_list = []
                 for key in fig_dict.keys():
                     if ba_graph[key].sum() > 0:
@@ -1539,9 +1554,12 @@ class MainWindow(QMainWindow):
                 m = 1
                 for key in use_list:
                     ax.barh(y_pos + width*m, data[key], width, color=fig_dict[key][0], label=fig_dict[key][1])
+                    if max(data[key]) > xlim: xlim = max(data[key])
                     m += 1
                 ax.set(yticks = y_pos + width, yticklabels = egrid)
 
+                if xlim > max(data['CFE Gap'])*3 and xlim > 100:
+                    ax.set_xlim(0,max(data['CFE Gap'])*3)
                 ax.set_ylabel(str(data.index.name))
                 ax.invert_yaxis()  # labels read top-to-bottom
                 ax.set_xlabel('GWh')          
@@ -1597,15 +1615,7 @@ class MainWindow(QMainWindow):
                 out = pd.DataFrame.from_dict(data_out)
                 out = out.set_index('Real Property Unique Identifier')
                 out.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table{table_num}.csv"))
-                table_num += 1
-                
-
-
-            self.frpp_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Data.csv"))            
-            #self.econ_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Econ_Data.csv"))
-            #self.cfe_use_df.to_csv(os.path.join(new_folder, f"{self.agency_code()}_Energy_Transition.csv"))
-            table1 = self.build_econ_tableout()
-            table1.to_csv(os.path.join(new_folder, f"{self.agency_code()}_table1.csv"))
+                table_num += 1                  
         else:
             self.statusbar.showMessage("Export Canceled", 30000)
 

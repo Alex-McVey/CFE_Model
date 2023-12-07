@@ -13,6 +13,11 @@
   <property name="windowTitle">
    <string>CFE Energy Model</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="cfe_res.qrc">
+    <normaloff>:/images/CFE_Icon.ico</normaloff>
+    <normalon>:/images/CFE_Icon.ico</normalon>:/images/CFE_Icon.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
